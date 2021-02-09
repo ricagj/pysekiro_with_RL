@@ -1,25 +1,25 @@
-## Using Reinforcement Learning to Play 《Sekiro™ Shadows Die Twice》
+## 用强化学习玩《只狼：影逝二度》
 
 <p align="center">
-    <a>English</a>
+    <a href="https://github.com/ricagj/pysekiro_with_RL/blob/main/README.md">English</a>
     | 
-    <a href="https://github.com/ricagj/pysekiro_with_RL/blob/main/README_CN.md">中文</a>
+    <a>中文</a>
 </p>
 
-# Reference
+# 参考
 https://github.com/Sentdex/pygta5  
 https://github.com/analoganddigital/DQN_play_sekiro  
 
-# Description
+# 说明
 
 None
 
-# Preparation
+# 准备
 
-#### Install Anaconda3 first
+#### 先安装 Anaconda3
 https://www.anaconda.com/
 
-#### Create a virtual environment and install dependencies
+#### 创建虚拟环境和安装依赖
 ~~~shell
 conda create -n pysekiro python=3.8
 conda activate pysekiro
@@ -31,4 +31,3 @@ pip install tensorflow>=2.0
 conda install -c conda-forge jupyterlab
 pip install gym
 ~~~
-
