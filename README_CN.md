@@ -14,9 +14,25 @@ https://github.com/analoganddigital/DQN_play_sekiro
 
 None
 
+# 开发日志
+
+<a href="https://github.com/ricagj/pysekiro_with_RL/blob/main/Development_log/README_CN.md">开发日志</a>
+
 # 准备
 
-#### 先安装 Anaconda3
+#### 游戏设置
+
+- 打开游戏 《只狼：影逝二度》
+    - 设定
+        - 按键设置
+            - 攻击动作
+                - 攻击    键盘    J
+                - 防御    键盘    K
+        - 图像设定
+            - 屏幕模式    窗口
+            - 屏幕分辨率    1280 x 720
+
+#### 安装 Anaconda3
 https://www.anaconda.com/
 
 #### 创建虚拟环境和安装依赖

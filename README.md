@@ -14,9 +14,26 @@ https://github.com/analoganddigital/DQN_play_sekiro
 
 None
 
+# Development log
+
+**Pending translation**  
+<a href="https://github.com/ricagj/pysekiro_with_RL/blob/main/Development_log/README.md">Development log</a>
+
 # Preparation
 
-#### Install Anaconda3 first
+#### Game settings
+
+- Open the game 《Sekiro™ Shadows Die Twice》
+    - Options
+        - Key Config
+            - Attack Action
+                - Attack    keyboard    J
+                - Deflect, (Hold) Gurad    keyboard    K
+        - Graphics Options
+            - Screen Mode    Windowed
+            - Screen Resolution    1280 x 720
+
+#### Install Anaconda3
 https://www.anaconda.com/
 
 #### Create a virtual environment and install dependencies
