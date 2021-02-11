@@ -4,27 +4,8 @@
 # http://www.gamespp.com/directx/directInputKeyboardScanCodes.html
 
 import ctypes
-import time
 
 SendInput = ctypes.windll.user32.SendInput
-
-# ---*---
-
-# direct keys (见 keys.py.txt文件里的第34行至第143行)
-# direct keys (see lines 34 to 143 in file "keys.py.txt")
-W = 0x11 # 移动 前 | Move Forward
-S = 0x1F # 移动 后 | Move Back
-A = 0x1E # 移动 左 | Move Left
-D = 0x20 # 移动 右 | Move Right
-R = 0x13 # 使用道具 | Use Item
-F = 0x21 # 钩绳 | Grappling Hook
-J = 0x24 # 攻击 | Attack
-K = 0x25 # 防御 | Deflect, (Hold) Guard
-SPACE = 0x39    # 跳跃 | Jump
-LSHIFT = 0x2A   # 垫步、（长按）冲刺 | Step Dodge, (hold) Sprint
-LCONTROL = 0x1D # 使用义手忍具 | Use Prosthetic Tool
-
-# ---*---
 
 # C struct redefinitions 
 PUL = ctypes.POINTER(ctypes.c_ulong)
@@ -72,40 +53,3 @@ def ReleaseKey(hexKeyCode):
     ii_.ki = KeyBdInput( 0, hexKeyCode, 0x0008 | 0x0002, 0, ctypes.pointer(extra) )
     x = Input( ctypes.c_ulong(1), ii_ )
     ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
-
-# ---*---
-
-def ReleaseAllKey():
-    ReleaseKey(J)
-    ReleaseKey(K)
-    ReleaseKey(LSHIFT)
-    ReleaseKey(SPACE)
-    ReleaseKey(W)
-
-def Attack():
-    print('Attack')
-    PressKey(W)
-    PressKey(J)
-    time.sleep(0.07)
-    ReleaseAllKey()
-
-def Deflect():
-    print('Deflect')
-    PressKey(W)
-    PressKey(K)
-    time.sleep(0.07)
-    ReleaseAllKey()
-
-def Step_Dodge():
-    print('Step Dodge')
-    PressKey(W)
-    PressKey(LSHIFT)
-    time.sleep(0.07)
-    ReleaseAllKey()
-
-def Jump():
-    print('Jump')
-    PressKey(W)
-    PressKey(SPACE)
-    time.sleep(0.07)
-    ReleaseAllKey()

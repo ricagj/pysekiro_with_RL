@@ -71,18 +71,12 @@ if __name__ == '__main__':
         tf.config.experimental.set_memory_growth(gpus[0], True)
         print(tf.config.experimental.get_device_details(gpus[0])['device_name'])
 
-    # x, x_w, y, y_h. 这些数据获取自 getvertices.py
-    # x, x_w, y, y_h. Get this data from getvertices.py
-    x=190
-    x_w=290
-    y=30
-    y_h=230
-
-    ROI_WIDTH = x_w - x
-    ROI_HEIGHT = y_h - y
+    # 感兴趣区域大小
+    ROI_WIDTH = 100
+    ROI_HEIGHT = 200
     FRAME_COUNT = 1
 
-    MODEL_NAME = 'sekiro.h5'
+    MODEL_WEIGHTS_NAME = 'sekiro_weights.h5'
     model = resnet(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT, output=5)
-
+    model.load_weights(MODEL_WEIGHTS_NAME)
     model.summary()

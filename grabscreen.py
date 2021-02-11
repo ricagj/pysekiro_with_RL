@@ -36,3 +36,28 @@ def grab_screen(region=None):
     win32gui.DeleteObject(bmp.GetHandle())
 
     return cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
+
+# ---*---
+
+# 游戏窗口大小
+GAME_WIDTH = 1280
+GAME_HEIGHT = 720
+
+# 标准窗口大小
+STANDARD_WIDTH = 480
+STANDARD_HEIGHT = 270
+
+FRAME_COUNT = 1
+
+x=190
+x_w=290
+y=30
+y_h=230
+
+def get_screen():
+    # 屏幕捕获，并图像缩放
+    # Grab screen, and resize the image
+    screen = grab_screen(region=(0, 30, GAME_WIDTH, GAME_HEIGHT+30))
+    screen = cv2.resize(screen, (STANDARD_WIDTH, STANDARD_HEIGHT))
+
+    return screen
