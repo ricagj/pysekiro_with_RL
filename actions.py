@@ -58,18 +58,22 @@ def Jump():
 
 # ---*---
 
-def action_choice(choice):
+def act(values):
 
-    if   choice == 0:
-        action = Attack     # 攻击
-    elif choice == 1:
-        action = Deflect    # 弹反
-    elif choice == 2:
-        action = Step_Dodge # 垫步
-    elif choice == 3:
-        action = Jump       # 跳跃
-    elif choice == 4:
-        action = ReleaseAllKey      # 其他
+    action = np.argmax(values)
     
-    action_process = threading.Thread(target=action)
-    action_process.start()
+    if   action == 0:
+        act = Attack     # 攻击
+    elif action == 1:
+        act = Deflect    # 弹反
+    elif action == 2:
+        act = Step_Dodge # 垫步
+    elif action == 3:
+        act = Jump       # 跳跃
+    elif action == 4:
+        pass             # 其他
+    
+    act_process = threading.Thread(target=act)
+    act_process.start()
+
+    return action

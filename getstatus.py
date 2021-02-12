@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 
-from getvertices import *
+from getvertices import roi
 
 # ---*---
 
@@ -43,23 +43,28 @@ def get_Sekiro_HP_Capacity(img):
 #     print('\n\n', Sekiro_HP, Sekiro_HP_Capacity)
     return Sekiro_HP_Capacity
 
-def get_Boss_HP_Capacity(img):
-    Boss_HP = roi(img, x=29, x_w=129, y=24, y_h=26)[0]
-    Boss_HP_Capacity = get_HP_capacity(Boss_HP)
-#     print('\n\n', Boss_HP, Boss_HP_Capacity)
-    return Boss_HP_Capacity
-
 def get_Sekiro_Posture_Capacity(img):
     Sekiro_Posture = roi(img, x=241, x_w=290, y=233, y_h=235)[0]
     Sekiro_Posture_Capacity = get_Posture_capacity(Sekiro_Posture)
 #     print('\n\n', Sekiro_Posture, Sekiro_Posture_Capacity)
     return Sekiro_Posture_Capacity
 
+def get_Boss_HP_Capacity(img):
+    Boss_HP = roi(img, x=29, x_w=129, y=24, y_h=26)[0]
+    Boss_HP_Capacity = get_HP_capacity(Boss_HP)
+#     print('\n\n', Boss_HP, Boss_HP_Capacity)
+    return Boss_HP_Capacity
+
 def get_Boss_Posture_Capacity(img):
     Boss_Posture = roi(img, x=241, x_w=326, y=16, y_h=18)[0]
     Boss_Posture_Capacity = get_Posture_capacity(Boss_Posture)
 #     print('\n\n', Boss_Posture, Boss_Posture_Capacity)
     return Boss_Posture_Capacity
+
+# ---*---
+
+def get_status(img):
+    return get_Sekiro_HP_Capacity(img), get_Sekiro_Posture_Capacity(img), get_Boss_HP_Capacity(img), get_Boss_Posture_Capacity(img)
 
 # ---*---
 
@@ -89,13 +94,10 @@ def main():
         cv2.imshow('img', img)
     #     cv2.imshow('roi(img)', roi(img, x=190, x_w=290, y=30, y_h=230))
 
-        Sekiro_HP_Capacity = get_Sekiro_HP_Capacity(img)
-        Sekiro_Posture_Capacity = get_Boss_HP_Capacity(img)
-        Boss_HP_Capacity = get_Sekiro_Posture_Capacity(img)
-        Boss_Posture_Capacity = get_Boss_Posture_Capacity(img)
+        Sekiro_HP, Sekiro_Posture, Boss_HP, Boss_Posture = get_status(img)
 
         Remaining -= 1
-        print(f'\r Remaining: {Remaining:<6}, motion:{motion:<11}, Sekiro_HP: {Sekiro_HP_Capacity:>4}, Sekiro_Posture: {Sekiro_Posture_Capacity:>4}, Boss_HP:{Boss_HP_Capacity:>4}, Boss_Posture: {Boss_Posture_Capacity:>4}', end='')
+        print(f'\r Remaining: {Remaining:<6}, motion:{motion:<11}, Sekiro_HP: {Sekiro_HP:>4}, Sekiro_Posture: {Sekiro_Posture:>4}, Boss_HP:{Boss_HP:>4}, Boss_Posture: {Boss_Posture:>4}', end='')
         cv2.waitKey(1)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             cv2.destroyAllWindows()

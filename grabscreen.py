@@ -49,11 +49,6 @@ STANDARD_HEIGHT = 270
 
 FRAME_COUNT = 1
 
-x=190
-x_w=290
-y=30
-y_h=230
-
 def get_screen():
     # 屏幕捕获，并图像缩放
     # Grab screen, and resize the image
