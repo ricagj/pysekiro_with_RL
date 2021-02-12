@@ -1,9 +1,7 @@
 import os
-import random
 
 import cv2
 import numpy as np
-import pandas as pd
 
 def roi(img, x, x_w, y, y_h):
     return img[y:y_h, x:x_w]
@@ -54,6 +52,10 @@ def get_vertices(img):
             break
     cv2.destroyAllWindows()
 
+    if len(vertices) != 4:
+        print("vertices number not match")
+        return -1
+
     x, x_w, y, y_h, vertices = standardize(vertices)
 
     dst = GrabCut_ROI(img, [np.array(vertices)])
@@ -78,33 +80,15 @@ def demo_01():
 
 def demo_02():
     boss = 'Genichiro_Ashina' # 苇名弦一郎
-    data = np.load(os.path.join('The_battle_memory', boss, f'training_data-1.npy'), allow_pickle=True)
+    data = np.load(os.path.join('The_battle_memory', boss, f'training_data-81.npy'), allow_pickle=True)
     
-    n = random.randint(0, len(data))
+    n = 975
     img =data[n][0]
 
-    # # get_Sekiro_HP | 获取 只狼 HP
-    # # HP_vertices = [[26, 247], [26, 243], [185, 243], [185, 247]] # defalut
-    print("Get Sekiro HP vertices")
     get_vertices(img)
-
-    # # get_Sekiro_Posture | 获取 只狼 架势
-    # # Posture_vertices = [[185, 235], [185, 233], [295, 233], [295, 235]] # defalut
-    # print("Get Sekiro Posture vertices")
-    # get_vertices(img)
-
-    # # get_Boss_HP | 获取 Boss HP
-    # # Boss_HP_vertices = [[26, 27], [26, 24], [133, 24], [133, 27]] # defalut
-    # print("Get Boss HP vertices")
-    # get_vertices(img)
-
-    # # get_Boss_Posture | 获取 Boss 架势
-    # # Boss_Posture_vertices = [[145, 17], [145, 15], [335, 15], [335, 17]] # defalut
-    # print("Get Boss Posture vertices")
-    # get_vertices(img)
-
+    
 # ---*---
 
 if __name__ == '__main__':
-    demo_01()
-    # demo_02()
+    # demo_01()
+    demo_02()
