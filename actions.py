@@ -5,8 +5,6 @@ from directkeys import PressKey, ReleaseKey
 
 # ---*---
 
-# direct keys (见 keys.py.txt文件里的第34行至第143行)
-# direct keys (see lines 34 to 143 in file "keys.py.txt")
 W = 0x11 # 移动 前 | Move Forward
 S = 0x1F # 移动 后 | Move Back
 A = 0x1E # 移动 左 | Move Left

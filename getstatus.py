@@ -92,7 +92,6 @@ def main():
             motion = 'O'      # 其他
 
         cv2.imshow('img', img)
-    #     cv2.imshow('roi(img)', roi(img, x=190, x_w=290, y=30, y_h=230))
 
         Sekiro_HP, Sekiro_Posture, Boss_HP, Boss_Posture = get_status(img)
 

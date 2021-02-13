@@ -2,8 +2,6 @@
 
 import win32api as wapi
 
-# virtual keys (见 keys.py.txt文件里的第145行至第254行)
-# virtual keys (see lines 145 to 254 in file "keys.py.txt")
 vk = {
     'W' : 0x57,
     'S' : 0x53,
@@ -23,16 +21,6 @@ vk = {
 
 keyList = ['\b']
 
-r"""
-2021-02-05
-目前只检测以下的键盘按键
-	J      攻击
-	K      防御
-	SPACE  跳跃
-	LSHIFT 垫步
-	T      暂停\继续 | Pause or continue
-	P      结束 | stop
-"""
 def key_check():
     keys = []
     for key in ['J', 'K', 'SPACE', 'LSHIFT', 'T', 'P']:
