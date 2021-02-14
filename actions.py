@@ -30,29 +30,29 @@ def Attack():
     print('Attack')
     PressKey(W)
     PressKey(J)
-    time.sleep(0.07)
-    ReleaseAllKey()
+    # time.sleep(0.07)
+    # ReleaseAllKey()
 
 def Deflect():
     print('Deflect')
     PressKey(W)
     PressKey(K)
-    time.sleep(0.07)
-    ReleaseAllKey()
+    # time.sleep(0.07)
+    # ReleaseAllKey()
 
 def Step_Dodge():
     print('Step Dodge')
     PressKey(W)
     PressKey(LSHIFT)
-    time.sleep(0.07)
-    ReleaseAllKey()
+    # time.sleep(0.07)
+    # ReleaseAllKey()
 
 def Jump():
     print('Jump')
     PressKey(W)
     PressKey(SPACE)
-    time.sleep(0.07)
-    ReleaseAllKey()
+    # time.sleep(0.07)
+    # ReleaseAllKey()
 
 # ---*---
 
@@ -69,7 +69,7 @@ def act(values):
     elif action == 3:
         act = Jump       # 跳跃
     elif action == 4:
-        pass             # 其他
+        act = ReleaseAllKey # 其他
     
     act_process = threading.Thread(target=act)
     act_process.start()
