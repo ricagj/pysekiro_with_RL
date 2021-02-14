@@ -29,32 +29,36 @@ def ReleaseAllKey():
     ReleaseKey(W)
 
 def Attack():
-    print('Attack')
+    print('\t\t\tAttack\t\t\tstart')
     PressKey(W)
     PressKey(J)
     time.sleep(0.07)
     ReleaseAllKey()
+    print('\t\t\tAttack\t\t\tstop')
 
 def Deflect():
-    print('Deflect')
+    print('\t\t\tDeflect\t\t\tstart')
     PressKey(W)
     PressKey(K)
     time.sleep(0.07)
     ReleaseAllKey()
+    print('\t\t\tDeflect\t\t\tstop')
 
 def Step_Dodge():
-    print('Step Dodge')
+    print('\t\t\tStep Dodge\t\t\tstart')
     PressKey(W)
     PressKey(LSHIFT)
     time.sleep(0.07)
     ReleaseAllKey()
+    print('\t\t\tStep Dodge\t\t\tstop')
 
 def Jump():
-    print('Jump')
+    print('\t\t\tJump\t\t\tstart')
     PressKey(W)
     PressKey(SPACE)
     time.sleep(0.07)
     ReleaseAllKey()
+    print('\t\t\tJump\t\t\tstop')
 
 # ---*---
 
