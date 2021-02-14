@@ -35,47 +35,35 @@ y_h=230
 def identity_block(input_tensor,out_dim):
     conv1 = tf.keras.layers.Conv2D(out_dim // 4, kernel_size=1, padding="SAME", activation=tf.nn.relu)(input_tensor)
     conv2 = tf.keras.layers.BatchNormalization()(conv1)
-    conv3 = tf.keras.layers.Conv2D(out_dim // 4, kernel_size=3, padding="SAME", activation=tf.nn.relu)(conv2)
-    conv4 = tf.keras.layers.BatchNormalization()(conv3)
-    conv5 = tf.keras.layers.Conv2D(out_dim, kernel_size=1, padding="SAME")(conv4)
-    out = tf.keras.layers.Add()([input_tensor, conv5])
+    conv3 = tf.keras.layers.Conv2D(out_dim, kernel_size=1, padding="SAME")(conv2)
+    out = tf.keras.layers.Add()([input_tensor, conv3])
     out = tf.nn.relu(out)
     return out
 def resnet(width, height, frame_count, output):
 
     input_xs = tf.keras.Input(shape=[width, height, frame_count])
     
-    out_dim = 32
-    conv_1 = tf.keras.layers.Conv2D(filters=out_dim,kernel_size=3,padding="SAME",activation=tf.nn.relu)(input_xs)
+    out_dim = 8
+    conv = tf.keras.layers.Conv2D(filters=out_dim,kernel_size=3,padding="SAME",activation=tf.nn.relu)(input_xs)
 
-    out_dim = 16
-    identity_1 = tf.keras.layers.Conv2D(filters=out_dim, kernel_size=3, padding="SAME", activation=tf.nn.relu)(conv_1)
-    identity_1 = tf.keras.layers.BatchNormalization()(identity_1)
+    out_dim = 8
+    identity = tf.keras.layers.Conv2D(filters=out_dim, kernel_size=3, padding="SAME", activation=tf.nn.relu)(conv)
+    identity = tf.keras.layers.BatchNormalization()(identity)
     for _ in range(2):
-        identity_1 = identity_block(identity_1,out_dim)
+        identity = identity_block(identity,out_dim)
 
-    out_dim = 16
-    identity_2 = tf.keras.layers.Conv2D(filters=out_dim, kernel_size=3, padding="SAME", activation=tf.nn.relu)(identity_1)
-    identity_2 = tf.keras.layers.BatchNormalization()(identity_2)
-    for _ in range(2):
-        identity_2 = identity_block(identity_2,out_dim)
-
-    flat = tf.keras.layers.Flatten()(identity_2)
-    flat = tf.keras.layers.Dropout(0.5)(flat)
-    dense = tf.keras.layers.Dense(32,activation=tf.nn.relu)(flat)
+    flat = tf.keras.layers.Flatten()(identity)
+    dense = tf.keras.layers.Dense(16,activation=tf.nn.relu)(flat)
     dense = tf.keras.layers.BatchNormalization()(dense)
     
-    logits = tf.keras.layers.Dense(output,activation=tf.nn.softmax)(dense)
+    logits = tf.keras.layers.Dense(output,activation=None)(dense)
     
     model = tf.keras.Model(inputs=input_xs, outputs=logits)
     
     model.compile(
-        optimizer = tf.keras.optimizers.Nadam(),
-        loss = tf.keras.losses.CategoricalCrossentropy(),
-        metrics = [
-            'accuracy'
-        ]
-    )
+        optimizer=tf.keras.optimizers.RMSprop(),
+        loss=tf.keras.losses.MeanSquaredError(),
+        )
     
     return model
 
@@ -137,6 +125,7 @@ class RewardSystem:
         plt.plot(np.arange(len(self.reward_history)), self.reward_history)
         plt.ylabel('reward')
         plt.xlabel('training steps')
+        plt.savefig('reward.png')
         plt.show()
 
 # 经验回放
@@ -166,10 +155,10 @@ class Sekiro_Agent:
         n_action = 5,
         gamma = 0.99,
         replay_memory_size = 200000,
-        replay_start_size = 32,
-        batch_size = 32,
-        update_freq = 5,
-        target_network_update_freq = 50
+        replay_start_size = 8,
+        batch_size = 8,
+        update_freq = 10,
+        target_network_update_freq = 500
 
     ):
 
