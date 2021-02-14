@@ -29,6 +29,7 @@ x=190
 x_w=290
 y=30
 y_h=230
+first_status=[152, 0, 99, 0]
 
 # ---*---
 
@@ -71,7 +72,7 @@ def resnet(width, height, frame_count, output):
 
 # 奖惩系统
 class RewardSystem:
-    def __init__(self, capacity, first_status=[152, 0, 99, 0]):
+    def __init__(self, capacity, first_status=first_status):
 
         """
         reward_weights
