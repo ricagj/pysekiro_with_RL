@@ -64,7 +64,7 @@ def get_Boss_Posture_Capacity(img):
 # ---*---
 
 def get_status(img):
-    return list(get_Sekiro_HP_Capacity(img), get_Sekiro_Posture_Capacity(img), get_Boss_HP_Capacity(img), get_Boss_Posture_Capacity(img))
+    return [get_Sekiro_HP_Capacity(img), get_Sekiro_Posture_Capacity(img), get_Boss_HP_Capacity(img), get_Boss_Posture_Capacity(img)]
 
 # ---*---
 

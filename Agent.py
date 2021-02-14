@@ -1,5 +1,7 @@
 from collections import deque
+import os
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -10,13 +12,13 @@ if gpus:
     print(tf.config.experimental.get_device_details(gpus[0])['device_name'])
 
 from actions import act
-from grabscreen import get_screen
-from getstatus import get_status
+from getvertices import roi
 
 # ---*---
 
-MODEL_WEIGHTS_NAME = 'sekiro_weights.h5'
-DQN_WEIGHTS_NAME = 'dqn_weights.h5'
+MODEL_WEIGHTS = 'sekiro_weights.h5'
+DQN_WEIGHTS = 'dqn_weights.h5'
+tmp_WEIGHTS = 'tmp_weights.h5'
 
 # 感兴趣区域大小
 ROI_WIDTH = 100
@@ -81,48 +83,65 @@ def resnet(width, height, frame_count, output):
 
 # 奖惩系统
 class RewardSystem:
-    def __init__(self):
+    def __init__(self, capacity, first_status=[152, 0, 99, 0]):
 
-        first_screen = get_screen()
-        first_status = list(get_status(first_screen))
+        """
+        reward_weights
+            生命减少 -     ，reward应为 -，所以对应权重应为 + 。
+            架势增加 +     ，reward应为 -，所以对应权重应为 - 。
+            敌方生命减少 - ，reward应为 +，所以对应权重应为 - 。
+            敌方架势增加 + ，reward应为 +，所以对应权重应为 + 。
 
-        # 把第一个获得的状态复制10份填满队列
+            [HP，架势，BossHP，Boss架势] = [1, -1, -1, 1]
+        """
+
+        # 把初始状态复制10份填满队列
         self.memory = deque(
             [first_status for _ in range(capacity)],
             maxlen=capacity
         )
-        self.capacity = 5
+        self.capacity = capacity
         
-        # [HP，架势，BossHP，Boss架势]
-        # 生命减少 -     ，reward应为 -，所以对应权重应为 + 。
-        # 架势增加 +     ，reward应为 -，所以对应权重应为 - 。
-        # 敌方生命减少 - ，reward应为 +，所以对应权重应为 - 。
-        # 敌方架势增加 + ，reward应为 +，所以对应权重应为 + 。
         self.reward_weights = [1, -1, -1, 1]
 
-    def store(self, next_screen):
+        # 记录积累reward过程
+        self.cur_reward = 0
+        self.reward_history = list()
+
+    def store(self, status):
+
         # 存储新数据，FIFO队列会自动弹出旧数据
-        new_status = list(get_status(next_screen))
-        self.memory.append(new_status)
+        self.memory.append(status)
     
     def get_reward(self):
+
         # 队列转数组
         data = np.array(self.memory)
         
         # 数组对半分为新数据和旧数据，分别计算均值
         split_n = int(self.capacity / 2)
+
         past_mean = np.mean(data[:split_n,], axis=0, dtype=np.int16)
         current_mean = np.mean(data[split_n:,], axis=0, dtype=np.int16)
         
-        reward = current_mean - past_mean
-        reward = reward * self.reward_weights
-        reward = sum(reward)
+        # 差值加权然后将得到的4个 reward 求和
+        reward = sum((current_mean - past_mean) * self.reward_weights)
+        reward = round(reward, 3)
+
+        self.cur_reward += reward
+        self.reward_history.append(self.cur_reward)
         
-        return round(reward, 3)
+        return reward
+
+    def plot_reward(self):
+        plt.plot(np.arange(len(self.reward_history)), self.reward_history)
+        plt.ylabel('reward')
+        plt.xlabel('training steps')
+        plt.show()
 
 # 经验回放
 class DQNReplayer:
-    def __init__(self):
+    def __init__(self, capacity):
         self.memory = pd.DataFrame(
             index=range(capacity),
             columns=['screen', 'action', 'reward', 'next_screen']
@@ -142,31 +161,57 @@ class DQNReplayer:
 
 # 智能体
 class Sekiro_Agent:
-    def __init__(self, n_actions = 5,):
+    def __init__(
+        self,
+        n_action = 5,
+        gamma = 0.99,
+        replay_memory_size = 200000,
+        replay_start_size = 32,
+        batch_size = 32,
+        update_freq = 5,
+        target_network_update_freq = 50
 
-        self.n_action = n_actions
+    ):
+
+        self.n_action = n_action
         
-        self.gamma = 0.99
+        # decay rate 奖励衰减
+        self.gamma = gamma
 
         # 经验回放参数
-        self.replay_start_size = 32
-        self.batch_size = 32
-        self.replayer = DQNReplayer()
+        self.replay_memory_size = replay_memory_size
+        self.replay_start_size = replay_start_size
+        self.batch_size = batch_size
+        self.replayer = DQNReplayer(replay_memory_size)
 
         # 奖惩系统
-        self.reward_system = RewardSystem()
+        self.reward_system = RewardSystem(update_freq)
+
+        # 训练评估网络的频率
+        self.update_freq = update_freq
+        # 更新目标网络的频率
+        self.target_network_update_freq = target_network_update_freq
 
         # 评估网络
         self.evaluate_net = self.build_network()
-
         # 目标网络
         self.target_net = self.build_network()
 
+        # 初始化计数值
+        self.step = 0
+        self.fit_count = 0
+
     def build_network(self):
         model = resnet(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
-            output = self.n_actions
+            output = self.n_action
             )
-        model.load_weights(MODEL_WEIGHTS_NAME)
+
+        if os.path.exists(tmp_WEIGHTS):
+            model.load_weights(tmp_WEIGHTS)
+        elif os.path.exists(DQN_WEIGHTS):
+            model.load_weights(DQN_WEIGHTS)
+        else:
+            model.load_weights(MODEL_WEIGHTS)
 
         return model
 
@@ -179,25 +224,38 @@ class Sekiro_Agent:
 
     # 学习
     def learn(self, screen, action, reward, next_screen):
+
         screen = roi(screen, x, x_w, y, y_h)
         next_screen = roi(next_screen, x, x_w, y, y_h)
 
         # 存储经验
         self.replayer.store(screen, action, reward, next_screen)
 
-        # 经验回放
-        screens, actions, rewards, next_screens = self.replayer.sample(slef.batch_size)
+        self.step += 1
 
-        next_qs = self.target_net.predict(next_states)
-        next_max_qs = next_qs.max(axis=-1)
-        targets = self.evaluate_net.predict(screens)
-        targets[range(self.batch_size), actions] = rewards + self.gamma * next_max_qs
-        self.evaluate_net.fit(screens, targets, verbose=0)
+        if self.step % self.update_freq == 0 and self.replayer.count >= self.replay_start_size:
 
-    # 更新目标网络
+            # 经验回放
+            screens, actions, rewards, next_screens = self.replayer.sample(self.batch_size)
+
+            screens = screens.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
+            next_screens = next_screens.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
+
+            next_qs = self.target_net.predict(next_screens)
+            next_max_qs = next_qs.max(axis=-1)
+            targets = self.evaluate_net.predict(screens)
+            targets[range(self.batch_size), actions] = rewards + self.gamma * next_max_qs
+            self.evaluate_net.fit(screens, targets, verbose=0)
+            self.save_evaluate_network()
+
+            if self.step % self.target_network_update_freq == 0:
+                self.update_target_network()
+
+
+    # 更新目标网络权重
     def update_target_network(self):
-        self.target_net.load_weights(DQN_WEIGHTS_NAME)
+        self.target_net.load_weights(tmp_WEIGHTS)
 
-    # 保存网络权重
-    def save_network():
-    	self.evaluate_net.save_weights(DQN_WEIGHTS_NAME)
+    # 保存评估网络权重
+    def save_evaluate_network(self):
+    	self.evaluate_net.save_weights(tmp_WEIGHTS)

@@ -1,6 +1,8 @@
 import threading
 import time
 
+import numpy as np
+
 from directkeys import PressKey, ReleaseKey
 
 # ---*---
@@ -30,29 +32,29 @@ def Attack():
     print('Attack')
     PressKey(W)
     PressKey(J)
-    # time.sleep(0.07)
-    # ReleaseAllKey()
+    time.sleep(0.07)
+    ReleaseAllKey()
 
 def Deflect():
     print('Deflect')
     PressKey(W)
     PressKey(K)
-    # time.sleep(0.07)
-    # ReleaseAllKey()
+    time.sleep(0.07)
+    ReleaseAllKey()
 
 def Step_Dodge():
     print('Step Dodge')
     PressKey(W)
     PressKey(LSHIFT)
-    # time.sleep(0.07)
-    # ReleaseAllKey()
+    time.sleep(0.07)
+    ReleaseAllKey()
 
 def Jump():
     print('Jump')
     PressKey(W)
     PressKey(SPACE)
-    # time.sleep(0.07)
-    # ReleaseAllKey()
+    time.sleep(0.07)
+    ReleaseAllKey()
 
 # ---*---
 

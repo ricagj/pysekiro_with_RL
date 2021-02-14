@@ -9,15 +9,12 @@
 # Reference
 https://github.com/Sentdex/pygta5  
 https://github.com/analoganddigital/DQN_play_sekiro  
+https://github.com/ZhiqingXiao/rl-book/blob/master/chapter10_atari/BreakoutDeterministic-v4_tf.ipynb  
+https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow/tree/master/contents/5_Deep_Q_Network  
 
 # Description
 
 None
-
-# Development log
-
-**Pending translation**  
-<a href="https://github.com/ricagj/pysekiro_with_RL/blob/main/Development_log/README.md">Development log</a>
 
 # Preparation
 
@@ -44,8 +41,5 @@ conda install pandas
 conda install pywin32
 pip install opencv-python>=4.0
 pip install tensorflow>=2.0
-
-conda install -c conda-forge jupyterlab
-pip install gym
 ~~~
 
