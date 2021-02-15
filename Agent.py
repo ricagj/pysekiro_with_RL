@@ -164,7 +164,8 @@ class Sekiro_Agent:
         n_action = 5,      # 动作数量
         batch_size = 8,    # 样本抽取数量
         gamma = 0.99,      # 奖励衰减
-        replay_memory_size = 50000    # 记忆容量
+        replay_memory_size = 50000,    # 记忆容量
+        action_weight = None,    # 动作选择的权重
     ):
         self.n_action = n_action
         self.gamma = gamma
@@ -174,6 +175,11 @@ class Sekiro_Agent:
         self.target_net = self.build_network()      # 目标网络
         self.reward_system = RewardSystem()                # 奖惩系统
         self.replayer = DQNReplayer(replay_memory_size)    # 经验回放
+
+        if action_weight:
+            self.action_weight = action_weight
+        else:
+            self.action_weight = [1.0 for _ in range(self.n_action)]
 
     def build_network(self):
         model = resnet(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
@@ -193,6 +199,7 @@ class Sekiro_Agent:
     def choose_action(self, screen):
         screen = roi(screen, x, x_w, y, y_h)
         q_values = self.evaluate_net.predict([screen.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)])[0]
+        q_values *= self.action_weight
         action = act(q_values)
         return action
 

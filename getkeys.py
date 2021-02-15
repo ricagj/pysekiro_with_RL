@@ -14,16 +14,15 @@ vk = {
     'SPACE'    : 0x20,
     'LSHIFT'   : 0xA0,
     'LCONTROL' : 0xA2, 
-    
-    'T'           : 0x54,
-    'P'           : 0x50
+    'T' : 0x54,
+    'P' : 0x50
 }
 
 keyList = ['\b']
 
 def key_check():
     keys = []
-    for key in ['J', 'K', 'SPACE', 'LSHIFT', 'T', 'P']:
+    for key in ['W', 'S', 'A', 'D', 'J', 'K', 'SPACE', 'LSHIFT', 'T', 'P']:
         if wapi.GetAsyncKeyState(vk[key]):
             keys.append(key)
     return keys

@@ -67,28 +67,4 @@ def get_vertices(img):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    print()
-    print(f'x={x}, x_w={x_w}, y={y}, y_h={y_h}')
-    print(f'vertices={vertices}')
-    print()
-
-# ---*---
-
-def demo_01():
-    img = cv2.imread("demo.png", 0)
-    get_vertices(img)
-
-def demo_02():
-    boss = 'Genichiro_Ashina' # 苇名弦一郎
-    data = np.load(os.path.join('The_battle_memory', boss, f'training_data-81.npy'), allow_pickle=True)
-    
-    n = 975
-    img =data[n][0]
-
-    get_vertices(img)
-    
-# ---*---
-
-if __name__ == '__main__':
-    # demo_01()
-    demo_02()
+    print(f'\n x={x}, x_w={x_w}, y={y}, y_h={y_h}, vertices={vertices} \n')
