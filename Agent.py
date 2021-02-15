@@ -182,8 +182,10 @@ class Sekiro_Agent:
 
         if os.path.exists(DQN_WEIGHTS):
             model.load_weights(DQN_WEIGHTS)
+            print('load ' + DQN_WEIGHTS)
         else:
             model.load_weights(MODEL_WEIGHTS)
+            print('load ' + MODEL_WEIGHTS)
 
         return model
 
