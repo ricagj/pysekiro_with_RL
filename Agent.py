@@ -100,6 +100,7 @@ class RewardSystem:
 
         # 记录积累reward过程
         self.current_cumulative_reward = 0
+        self.recording_freq = 0
         self.reward_history = list()
 
     def store(self, status):
@@ -122,11 +123,13 @@ class RewardSystem:
         reward = sum((current_mean - past_mean) * self.reward_weights)
 
         self.current_cumulative_reward += reward
-        self.reward_history.append(self.current_cumulative_reward)
+        self.recording_freq += 1
+        if self.recording_freq % 20 == 0:
+            self.reward_history.append(self.current_cumulative_reward)
 
         return reward
 
-    def save_reward_curve(self, save_path):
+    def save_reward_curve(self, save_path='reward.png'):
         plt.plot(np.arange(len(self.reward_history)), self.reward_history)
         plt.ylabel('reward')
         plt.xlabel('training steps')
@@ -161,7 +164,7 @@ class Sekiro_Agent:
         n_action = 5,      # 动作数量
         batch_size = 8,    # 样本抽取数量
         gamma = 0.99,      # 奖励衰减
-        replay_memory_size = 500000    # 记忆容量
+        replay_memory_size = 50000    # 记忆容量
     ):
         self.n_action = n_action
         self.gamma = gamma
@@ -213,4 +216,8 @@ class Sekiro_Agent:
 
     # 保存评估网络权重
     def save_evaluate_network(self, save_path=tmp_WEIGHTS):
-        self.evaluate_net.save_weights(save_path)
+        try:
+            self.evaluate_net.save_weights(save_path)
+        except OSError: # OSError: Unable to create file (unable to open file: name = 'tmp_weights.h5', errno = 13, error message = 'Permission denied', flags = 13, o_flags = 302)
+            os.remove(save_path)
+            self.evaluate_net.save_weights(save_path)
