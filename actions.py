@@ -19,6 +19,8 @@ SPACE = 0x39    # 跳跃 | Jump
 LSHIFT = 0x2A   # 垫步、（长按）冲刺 | Step Dodge, (hold) Sprint
 LCONTROL = 0x1D # 使用义手忍具 | Use Prosthetic Tool
 
+Y = 0x15 # 重置视角/固定目标
+
 # ---*---
 
 def ReleaseAllKey():
@@ -29,36 +31,36 @@ def ReleaseAllKey():
     ReleaseKey(W)
 
 def Attack():
-    # print('\t\t\tAttack\t\t\tstart')
+    print('\t\t\tAttack\tstart')
     PressKey(W)
     PressKey(J)
     time.sleep(0.08)
     ReleaseAllKey()
-    # print('\t\t\tAttack\t\t\tstop')
+    print('\t\t\tAttack\t\tstop')
 
 def Deflect():
-    # print('\t\t\tDeflect\t\t\tstart')
+    print('\t\t\tDeflect\tstart')
     PressKey(W)
     PressKey(K)
     time.sleep(0.08)
     ReleaseAllKey()
-    # print('\t\t\tDeflect\t\t\tstop')
+    print('\t\t\tDeflect\t\tstop')
 
 def Step_Dodge():
-    # print('\t\t\tStep Dodge\t\t\tstart')
+    print('\t\t\tStep Dodge\tstart')
     PressKey(W)
     PressKey(LSHIFT)
     time.sleep(0.08)
     ReleaseAllKey()
-    # print('\t\t\tStep Dodge\t\t\tstop')
+    print('\t\t\tStep Dodge\t\tstop')
 
 def Jump():
-    # print('\t\t\tJump\t\t\tstart')
+    print('\t\t\tJump\tstart')
     PressKey(W)
     PressKey(SPACE)
     time.sleep(0.08)
     ReleaseAllKey()
-    # print('\t\t\tJump\t\t\tstop')
+    print('\t\t\tJump\t\tstop')
 
 # ---*---
 
