@@ -68,3 +68,12 @@ def get_vertices(img):
     cv2.destroyAllWindows()
 
     print(f'\n x={x}, x_w={x_w}, y={y}, y_h={y_h}, vertices={vertices} \n')
+
+# ---*---
+
+def demo():
+    img = cv2.imread("demo.png", 0)
+    get_vertices(img)
+
+if __name__ == '__main__':
+    demo()

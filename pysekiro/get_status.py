@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 
-from getvertices import roi
+from get_vertices.py import roi
 
 # ---*---
 

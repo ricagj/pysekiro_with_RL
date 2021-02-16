@@ -12,8 +12,8 @@ if gpus:
     tf.config.experimental.set_memory_growth(gpus[0], True)
     print(tf.config.experimental.get_device_details(gpus[0])['device_name'])
 
-from actions import act
-from getvertices import roi
+from pysekiro.actions import act
+from pysekiro.getvertices import roi
 
 # ---*---
 
@@ -188,10 +188,12 @@ class Sekiro_Agent:
 
         if os.path.exists(DQN_WEIGHTS):
             model.load_weights(DQN_WEIGHTS)
-            print('load ' + DQN_WEIGHTS)
-        else:
+            print('Load ' + DQN_WEIGHTS)
+        elif os.path.exists(MODEL_WEIGHTS):
             model.load_weights(MODEL_WEIGHTS)
-            print('load ' + MODEL_WEIGHTS)
+            print('Load ' + MODEL_WEIGHTS)
+        else:
+            print('Nothing to load')
 
         return model
 
@@ -227,6 +229,5 @@ class Sekiro_Agent:
     def save_evaluate_network(self, save_path=tmp_WEIGHTS):
         try:
             self.evaluate_net.save_weights(save_path)
-        except OSError: # OSError: Unable to create file (unable to open file: name = 'tmp_weights.h5', errno = 13, error message = 'Permission denied', flags = 13, o_flags = 302)
-            os.remove(save_path)
-            self.evaluate_net.save_weights(save_path)
+        except:
+            print('save weights faild!!!')
