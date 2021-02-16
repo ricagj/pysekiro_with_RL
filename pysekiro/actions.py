@@ -3,23 +3,23 @@ import time
 
 import numpy as np
 
-from directkeys import PressKey, ReleaseKey
+from pysekiro.direct_keys import PressKey, ReleaseKey
 
 # ---*---
 
-W = 0x11 # 移动 前 | Move Forward
-S = 0x1F # 移动 后 | Move Back
-A = 0x1E # 移动 左 | Move Left
-D = 0x20 # 移动 右 | Move Right
+W = 0x11
+S = 0x1F
+A = 0x1E
+D = 0x20
 R = 0x13 # 使用道具 | Use Item
 F = 0x21 # 钩绳 | Grappling Hook
-J = 0x24 # 攻击 | Attack
-K = 0x25 # 防御 | Deflect, (Hold) Guard
-SPACE = 0x39    # 跳跃 | Jump
-LSHIFT = 0x2A   # 垫步、（长按）冲刺 | Step Dodge, (hold) Sprint
+J = 0x24
+K = 0x25
+SPACE = 0x39
+LSHIFT = 0x2A
 LCONTROL = 0x1D # 使用义手忍具 | Use Prosthetic Tool
 
-Y = 0x15 # 重置视角/固定目标
+Y = 0x15
 
 # ---*---
 
@@ -34,7 +34,7 @@ def Attack():
     print('\t\t\tAttack\tstart')
     PressKey(W)
     PressKey(J)
-    time.sleep(0.08)
+    time.sleep(0.1)
     ReleaseAllKey()
     print('\t\t\tAttack\t\tstop')
 
@@ -50,7 +50,7 @@ def Step_Dodge():
     print('\t\t\tStep Dodge\tstart')
     PressKey(W)
     PressKey(LSHIFT)
-    time.sleep(0.08)
+    time.sleep(0.1)
     ReleaseAllKey()
     print('\t\t\tStep Dodge\t\tstop')
 
@@ -58,7 +58,7 @@ def Jump():
     print('\t\t\tJump\tstart')
     PressKey(W)
     PressKey(SPACE)
-    time.sleep(0.08)
+    time.sleep(0.1)
     ReleaseAllKey()
     print('\t\t\tJump\t\tstop')
 
