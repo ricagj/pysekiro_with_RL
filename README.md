@@ -20,7 +20,7 @@ https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow/tree/master
 2. 在没有数据的情况下，单纯只用强化学习训练**智能体只狼**  
 3. 在有收集到一定数据的情况下，先用深度学习训练**智能体只狼**，再把训练出来的模型用强化学习继续训练  
 
-具体见 [教程](https://nbviewer.jupyter.org/github.com/ricagj/pysekiro_with_RL/Tutorial.ipynb)
+具体见 [教程](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/Tutorial.ipynb)
 # 准备
 
 #### 游戏设置
