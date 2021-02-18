@@ -2,18 +2,19 @@
 
 import win32api as wapi
 
+# virtual keys
 vk = {
     'W' : 0x57,
     'S' : 0x53,
     'A' : 0x41,
     'D' : 0x44,
-    'R' : 0x52,
-    'F' : 0x46,
+    #'R' : 0x52,
+    #'F' : 0x46,
     'J' : 0x4A,
     'K' : 0x4B,
     'SPACE'    : 0x20,
     'LSHIFT'   : 0xA0,
-    'LCONTROL' : 0xA2, 
+    #'LCONTROL' : 0xA2, 
     'T' : 0x54,
     'P' : 0x50
 }

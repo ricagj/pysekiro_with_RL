@@ -1,9 +1,4 @@
-import os
-
-import cv2
-import numpy as np
-
-from get_vertices.py import roi
+from pysekiro.get_vertices import roi
 
 # ---*---
 
@@ -65,46 +60,3 @@ def get_Boss_Posture(img):
 
 def get_status(img):
     return [get_Sekiro_HP(img), get_Sekiro_Posture(img), get_Boss_HP(img), get_Boss_Posture(img)]
-
-# ---*---
-
-def main():
-
-    print('Press "q" to quit. ') # 按q键离开。
-
-    boss = 'Genichiro_Ashina' # 苇名弦一郎
-    data = np.load(os.path.join('The_battle_memory', boss, f'training_data-{105}.npy'), allow_pickle=True)
-
-    # data = data[1500:1700]
-    Remaining = len(data)
-
-    for screen, action_value in data:
-
-        if   action_value == [1,0,0,0,0]:
-            motion = 'Attack'     # 攻击
-        elif action_value == [0,1,0,0,0]:
-            motion = 'Deflect'    # 弹反
-        elif action_value == [0,0,1,0,0]:
-            motion = 'Step Dodge' # 垫步
-        elif action_value == [0,0,0,1,0]:
-            motion = 'Jump'       # 跳跃
-        elif action_value == [0,0,0,0,1]:
-            motion = 'O'      # 其他
-
-        cv2.imshow('screen', screen)
-
-        Sekiro_HP, Sekiro_Posture, Boss_HP, Boss_Posture = get_status(screen)
-
-        Remaining -= 1
-        print(f'\r Remaining: {Remaining:<6}, motion:{motion:<11}, Sekiro_HP: {Sekiro_HP:>4}, Sekiro_Posture: {Sekiro_Posture:>4}, Boss_HP:{Boss_HP:>4}, Boss_Posture: {Boss_Posture:>4}', end='')
-        cv2.waitKey(1)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            cv2.destroyAllWindows()
-            break
-    else:
-        cv2.destroyAllWindows()
-
-# ---*---
-
-if __name__ == '__main__':
-    main()
