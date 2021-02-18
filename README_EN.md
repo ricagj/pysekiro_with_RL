@@ -15,7 +15,7 @@ https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow/tree/master
 
 # Description
 
-None
+# **Pending translation**
 
 # Preparation
 
@@ -56,7 +56,7 @@ None
                 - set Off
             Quality Settings
                 - set Low
-- Place the game window on the upper left
+- Place the game window on the upper left  
 ![example_01](./imgs/example_01.png)  
 
 #### Install Anaconda3
@@ -71,4 +71,6 @@ conda install matplotlib
 conda install pywin32
 pip install opencv-python>=4.0
 pip install tensorflow>=2.0
+
+conda install -c conda-forge jupyterlab
 ~~~

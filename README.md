@@ -15,8 +15,12 @@ https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow/tree/master
 
 # 说明
 
-None
+#### 本项目将从三个角度来训练只狼
+1. 在有收集到一定数据的情况下，单纯只用深度学习训练**智能体只狼**  
+2. 在没有数据的情况下，单纯只用强化学习训练**智能体只狼**  
+3. 在有收集到一定数据的情况下，先用深度学习训练**智能体只狼**，再把训练出来的模型用强化学习继续训练  
 
+具体见 [教程](https://nbviewer.jupyter.org/github.com/ricagj/pysekiro_with_RL/Tutorial.ipynb)
 # 准备
 
 #### 游戏设置
@@ -56,7 +60,7 @@ None
                 - OFF
             - 质量设定
                 - 低
-- 将游戏窗口放在左上方
+- 将游戏窗口放在左上方  
 ![example_01](./imgs/example_01.png)  
 
 #### 安装 Anaconda3
@@ -71,4 +75,6 @@ conda install matplotlib
 conda install pywin32
 pip install opencv-python>=4.0
 pip install tensorflow>=2.0
+
+conda install -c conda-forge jupyterlab
 ~~~
