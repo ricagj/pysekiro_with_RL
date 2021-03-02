@@ -74,7 +74,7 @@ class Data_collection:
                 Self_HP, Self_Posture, Target_HP, Target_Posture = status
                 reward = self.reward_system.get_reward(status, np.argmax(action))    # 计算 reward
 
-                self.dataset.append([screen, output])    # 图像和输出打包在一起，保证一一对应
+                self.dataset.append([screen, action])    # 图像和输出打包在一起，保证一一对应
 
                 print(f'\rloop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[np.argmax(action)]:>10}. Self HP: {Self_HP:>3}, Self Posture: {Self_Posture:>3}, Target HP: {Target_HP:>3}, Target Posture: {Target_Posture:>3}', end='')
 

@@ -28,6 +28,7 @@ def train(
     model = resnet(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
         outputs = n_action
     )
+    model.summary()
 
     if MODEL_WEIGHTS:
         print("load model weights ...")
@@ -40,7 +41,7 @@ def train(
         filename = f'training_data-{i}.npy'
         data_path = os.path.join('The_battle_memory', target, filename)
 
-        is os.path.exists(data_path):
+        if os.path.exists(data_path):
             data = np.load(data_path, allow_pickle=True)
             print(filename, 'Total data volume：', len(data))
 
