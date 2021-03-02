@@ -14,16 +14,16 @@ y   = 30
 y_h = 230
 
 # 训练评估网络的频率
-update_freq = 200
+update_freq = 30
 # 更新目标网络的频率
-target_network_update_freq = 500
+target_network_update_freq = 150
 
 # ---*---
 
 # 离线学习
-def learn_offline(target, start, end):
+def learn_offline(target, start, end, model_weights=None):
 
-    sekiro_agent = Sekiro_Agent(load_weights = True)
+    sekiro_agent = Sekiro_Agent(model_weights=model_weights)
 
     for i in range(start, end+1):
 
@@ -59,9 +59,3 @@ def learn_offline(target, start, end):
         sekiro_agent.save_evaluate_network()    # 这个数据学习完毕，保存网络权重
         sekiro_agent.reward_system.save_reward_curve()    # 绘制 reward 曲线并保存在当前目录
         print(f'[summary] round:{i:>3}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>}')
-
-# ---*---
-
-if __name__ == '__main__':
-    target = 'Genichiro_Ashina' # 苇名弦一郎
-    learn_offline(target, start=2, end=2)

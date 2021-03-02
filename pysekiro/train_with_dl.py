@@ -22,7 +22,7 @@ def train(
     end=1,
     batch_size=8,
     epochs=1,
-    MODEL_WEIGHTS = None,
+    model_weights=None
     ):
 
     model = resnet(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
@@ -30,11 +30,14 @@ def train(
     )
     model.summary()
 
-    if MODEL_WEIGHTS:
-        print("load model weights ...")
-        model.load_weights(MODEL_WEIGHTS)
+    if model_weights:
+        if os.path.exists(model_weights):
+            model.load_weights(model_weights)
+            print('Load ' + model_weights)
+        else:
+            print('Nothing to load')
     else:
-        MODEL_WEIGHTS = 'sekiro_weights.h5'
+        model_weights = 'sekiro_weights.h5'
 
     for i in range(start, end+1):
 
@@ -49,6 +52,6 @@ def train(
             Y = np.array([i[1] for i in data])
 
             model.fit(X, Y, batch_size=batch_size, epochs=epochs, verbose=1)
-            model.save_weights(MODEL_WEIGHTS)
+            model.save_weights(model_weights)
         else:
         	print(f'{filename} does not exist ')
