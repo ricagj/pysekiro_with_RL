@@ -25,75 +25,74 @@ Y = 0x15
 # ---*---
 
 def Move_Forward():
-    print('\t\t\tMove Forward')
+    print('\r\t\t\tMove Forward', end='')
     PressKey(W)
     time.sleep(1)
     ReleaseKey(W)
 
 # def Move_Back():
-#     print('\t\t\tMove Back')
+#     print('\r\t\t\tMove Back', end='')
 #     PressKey(S)
 #     time.sleep(1)
 #     ReleaseKey(S)
 
 # def Move_Left():
-#     print('\t\t\tMove Left')
+#     print('\r\t\t\tMove Left', end='')
 #     PressKey(A)
 #     time.sleep(1)
 #     ReleaseKey(A)
 
 # def Move_Right():
-#     print('\t\t\tMove Right')
+#     print('\r\t\t\tMove Right', end='')
 #     PressKey(D)
 #     time.sleep(1)
 #     ReleaseKey(D)
 
 # def Lock_On():
-#     print('\t\t\tStep Dodge')
+#     print('\r\t\t\tStep Dodge', end='')
 #     PressKey(Y)
 #     time.sleep(0.1)
 #     ReleaseKey(Y)
 
 def Step_Dodge():
-    print('\t\t\tStep Dodge')
+    print('\r\t\t\tStep Dodge', end='')
     PressKey(LSHIFT)
     time.sleep(0.1)
     ReleaseKey(LSHIFT)
 
 def Jump():
-    print('\t\t\tJump')
+    print('\r\t\t\tJump', end='')
     PressKey(SPACE)
     time.sleep(0.1)
     ReleaseKey(SPACE)
 
 def Attack():
-    print('\t\t\tAttack')
+    print('\r\t\t\tAttack', end='')
     PressKey(J)
     time.sleep(0.1)
     ReleaseKey(J)
 
 def Deflect():
-    print('\t\t\tDeflect')
+    print('\r\t\t\tDeflect', end='')
     PressKey(K)
     time.sleep(0.08)
     ReleaseKey(K)
 
 # ---*---
 
+# 根据 collect_data.py
 def act(values):
-
-    action = np.argmax(values)
     
-    if   action == 0:
+    if   values == 0:
         act = Attack     # 攻击
-    elif action == 1:
+    elif values == 1:
         act = Deflect    # 弹反
-    elif action == 2:
+    elif values == 2:
         act = Step_Dodge # 垫步
-    elif action == 3:
+    elif values == 3:
         act = Jump       # 跳跃
-    elif action == 4:
-        act = ReleaseAllKey # 其他
+    elif values == 4:
+        act = Move_Forward # 其他
     
     # 暂时只向前移动，其他走位以后再考虑
     move_process = threading.Thread(target=Move_Forward)
@@ -101,5 +100,3 @@ def act(values):
 
     act_process = threading.Thread(target=act)
     act_process.start()
-
-    return action
