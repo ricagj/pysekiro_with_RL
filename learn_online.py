@@ -18,16 +18,16 @@ y   = 30
 y_h = 230
 
 # 训练评估网络的频率
-update_freq = 200
+update_freq = 30
 # 更新目标网络的频率
-target_network_update_freq = 500
+target_network_update_freq = 150
 
 # ---*---
 
 # 在线学习
-def learn_online(train=False):
+def learn_online(train=False, model_weights=None):
 
-    sekiro_agent = Sekiro_Agent()
+    sekiro_agent = Sekiro_Agent(model_weights=model_weights)
 
     paused = True
     print("Ready!")
@@ -49,8 +49,9 @@ def learn_online(train=False):
             action = sekiro_agent.choose_action(screen)    # Agent
 
             status = get_status(screen)
+            Self_HP, Self_Posture, Target_HP, Target_Posture = status
             reward = sekiro_agent.reward_system.get_reward(status, np.argmax(action))    # 计算 reward
-            
+
             next_screen = get_screen()
             if train:
                 sekiro_agent.replayer.store(
@@ -93,8 +94,3 @@ def learn_online(train=False):
                 time.sleep(1)
 
     print('\nDone!')
-
-# ---*---
-
-if __name__ == '__main__':
-    learn_online()

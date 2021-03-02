@@ -11,17 +11,17 @@ def resnet(width, height, frame_count, outputs):
 
     input_xs = tf.keras.Input(shape=[width, height, frame_count])
 
-    out_dim = 16
+    out_dim = 8
     conv = tf.keras.layers.Conv2D(filters=out_dim,kernel_size=3,padding="SAME",activation=tf.nn.relu)(input_xs)
 
-    out_dim = 16
+    out_dim = 8
     identity = tf.keras.layers.Conv2D(filters=out_dim, kernel_size=3, padding="SAME", activation=tf.nn.relu)(conv)
     identity = tf.keras.layers.BatchNormalization()(identity)
     for _ in range(1):
         identity = identity_block(identity,out_dim)
 
     flat = tf.keras.layers.Flatten()(identity)
-    dense = tf.keras.layers.Dense(16,activation=tf.nn.relu)(flat)
+    dense = tf.keras.layers.Dense(8,activation=tf.nn.relu)(flat)
     dense = tf.keras.layers.BatchNormalization()(dense)
 
     logits = tf.keras.layers.Dense(outputs,activation=None)(dense)

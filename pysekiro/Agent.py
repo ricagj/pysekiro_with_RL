@@ -19,8 +19,7 @@ from pysekiro.model import resnet
 # ---*---
 
 MODEL_WEIGHTS = 'sekiro_weights.h5'
-DQN_WEIGHTS = 'dqn_weights.h5'
-tmp_WEIGHTS = 'tmp_weights.h5'
+TMP_WEIGHTS = 'tmp_weights.h5'
 
 ROI_WIDTH = 100
 ROI_HEIGHT = 200
@@ -35,14 +34,14 @@ n_action = 5
 
 # ---*---
 
-# 根据 actions.py
-action_point = {
-    0:  0.15,    # 攻击
-    1:  0.12,    # 弹反
-    2:  0.1,    # 垫步
-    3:  0.1,    # 跳跃
-    4: -0.05    # 其他
-}
+# # 根据 actions.py
+# action_point = {
+#     0:  0.15,    # 攻击
+#     1:  0.12,    # 弹反
+#     2:  0.1,    # 垫步
+#     3:  0.1,    # 跳跃
+#     4: -0.05    # 其他
+# }
 
 class RewardSystem:
     def __init__(self):
@@ -61,7 +60,7 @@ class RewardSystem:
         """
         self.reward_weights = [0.1, -0.1, -0.1, 0.1] # = [自身HP，自身架势，目标HP，目标架势]
 
-        self.past_status = [153, 0, 101, 0]
+        self.past_status = [152, 0, 100, 0]
 
         # 记录积累reward过程
         self.current_cumulative_reward = 0
@@ -70,10 +69,16 @@ class RewardSystem:
     def get_reward(self, status, action):
 
         self.status = status
-        point = action_point[action]
-        reward = sum((np.array(self.status) - np.array(self.past_status)) * self.reward_weights)
+        status_difference = np.array(self.status) - np.array(self.past_status)
         self.past_status = self.status
-        self.current_cumulative_reward += reward + point
+
+        # if np.any(status_difference):
+        #     point = action_point[action]
+        # else:
+        #     point = 0
+        reward = sum(status_difference * self.reward_weights)    #  + point
+        
+        self.current_cumulative_reward += reward
         self.reward_history.append(self.current_cumulative_reward)
 
         return reward
@@ -116,14 +121,14 @@ class Sekiro_Agent:
         epsilon = 1.0,
         epsilon_decrease_rate = 0.9995,
         replay_memory_size = 50000,    # 记忆容量
-        load_weights = False
+        model_weights = None
     ):
         self.n_action = n_action
         self.gamma = gamma
         self.epsilon = epsilon
         self.epsilon_decrease_rate = epsilon_decrease_rate
         self.batch_size = batch_size
-        self.load_weights = load_weights
+        self.model_weights = model_weights
 
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
@@ -134,13 +139,10 @@ class Sekiro_Agent:
         model = resnet(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
             outputs = self.n_action
         )
-        if self.load_weights:
-            if os.path.exists(DQN_WEIGHTS):
-                model.load_weights(DQN_WEIGHTS)
-                print('Load ' + DQN_WEIGHTS)
-            elif os.path.exists(MODEL_WEIGHTS):
-                model.load_weights(MODEL_WEIGHTS)
-                print('Load ' + MODEL_WEIGHTS)
+        if self.model_weights:
+            if os.path.exists(self.model_weights):
+                model.load_weights(self.model_weights)
+                print('Load ' + self.model_weights)
             else:
                 print('Nothing to load')
 
@@ -176,11 +178,11 @@ class Sekiro_Agent:
         self.evaluate_net.fit(screens, targets, verbose=0)
 
     # 更新目标网络权重
-    def update_target_network(self, load_path=tmp_WEIGHTS):
+    def update_target_network(self, load_path=TMP_WEIGHTS):
         self.target_net.load_weights(load_path)
 
     # 保存评估网络权重
-    def save_evaluate_network(self, save_path=tmp_WEIGHTS):
+    def save_evaluate_network(self, save_path=TMP_WEIGHTS):
         try:
             self.evaluate_net.save_weights(save_path)
         except:
