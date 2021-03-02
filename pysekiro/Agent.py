@@ -13,7 +13,8 @@ if gpus:
     print(tf.config.experimental.get_device_details(gpus[0])['device_name'])
 
 from pysekiro.actions import act
-from pysekiro.getvertices import roi
+from pysekiro.get_vertices import roi
+from pysekiro.model import resnet
 
 # ---*---
 
@@ -30,59 +31,21 @@ x_w=290
 y=30
 y_h=230
 
+n_action = 5
 
 # ---*---
 
-def identity_block(input_tensor,out_dim):
-    conv1 = tf.keras.layers.Conv2D(out_dim // 4, kernel_size=1, padding="SAME", activation=tf.nn.relu)(input_tensor)
-    conv2 = tf.keras.layers.BatchNormalization()(conv1)
-    conv3 = tf.keras.layers.Conv2D(out_dim, kernel_size=1, padding="SAME")(conv2)
-    out = tf.keras.layers.Add()([input_tensor, conv3])
-    out = tf.nn.relu(out)
-    return out
-def resnet(width, height, frame_count, output):
-
-    input_xs = tf.keras.Input(shape=[width, height, frame_count])
-
-    out_dim = 8
-    conv = tf.keras.layers.Conv2D(filters=out_dim,kernel_size=3,padding="SAME",activation=tf.nn.relu)(input_xs)
-
-    out_dim = 8
-    identity = tf.keras.layers.Conv2D(filters=out_dim, kernel_size=3, padding="SAME", activation=tf.nn.relu)(conv)
-    identity = tf.keras.layers.BatchNormalization()(identity)
-    for _ in range(2):
-        identity = identity_block(identity,out_dim)
-
-    flat = tf.keras.layers.Flatten()(identity)
-    dense = tf.keras.layers.Dense(16,activation=tf.nn.relu)(flat)
-    dense = tf.keras.layers.BatchNormalization()(dense)
-
-    logits = tf.keras.layers.Dense(output,activation=None)(dense)
-
-    model = tf.keras.Model(inputs=input_xs, outputs=logits)
-
-    model.compile(
-        optimizer=tf.keras.optimizers.RMSprop(),
-        loss=tf.keras.losses.MeanSquaredError(),
-    )
-
-    return model
-
-# ---*---
-
-initial_state=[152, 0, 99, 0]
+# 根据 actions.py
+action_point = {
+    0:  0.15,    # 攻击
+    1:  0.12,    # 弹反
+    2:  0.1,    # 垫步
+    3:  0.1,    # 跳跃
+    4: -0.05    # 其他
+}
 
 class RewardSystem:
-    def __init__(self, capacity=4, initial_state=initial_state):
-        # 把初始状态复制10份填满队列
-        self.memory = deque(
-            [initial_state for _ in range(capacity)],
-            maxlen=capacity
-        )
-
-        # 理论上，容量越大，抗干扰能力越强，但也因此让过去对现在的影响加强
-        self.capacity = capacity
-
+    def __init__(self):
         """     
         设置 正强化 和 负强化
         由于计算 reward 的算法是 现在的状态减去过去的状态，所以
@@ -96,36 +59,22 @@ class RewardSystem:
             敌方架势 |  +   |   +    |    +    |
             敌方架势 |  -   |   -    |    +    |
         """
-        self.reward_weights = [0.1, -0.1, -0.1, 0.1] # = [HP，架势，BossHP，Boss架势]
+        self.reward_weights = [0.1, -0.1, -0.1, 0.1] # = [自身HP，自身架势，目标HP，目标架势]
+
+        self.past_status = [153, 0, 101, 0]
 
         # 记录积累reward过程
         self.current_cumulative_reward = 0
-        self.recording_freq = 0
         self.reward_history = list()
 
-    def store(self, status):
+    def get_reward(self, status, action):
 
-        # 存储新数据，FIFO队列会自动弹出旧数据
-        self.memory.append(status)
-
-    def get_reward(self):
-
-        # 队列转numpy数组
-        data = np.array(self.memory)
-
-        # 数组对半分为新数据和旧数据，分别计算均值
-        split_n = int(self.capacity / 2)
-
-        past_mean = np.mean(data[:split_n,], axis=0, dtype=np.int16)
-        current_mean = np.mean(data[split_n:,], axis=0, dtype=np.int16)
-
-        # 差值加权然后将得到的4个 reward 求和
-        reward = sum((current_mean - past_mean) * self.reward_weights)
-
-        self.current_cumulative_reward += reward
-        self.recording_freq += 1
-        if self.recording_freq % 20 == 0:
-            self.reward_history.append(self.current_cumulative_reward)
+        self.status = status
+        point = action_point[action]
+        reward = sum((np.array(self.status) - np.array(self.past_status)) * self.reward_weights)
+        self.past_status = self.status
+        self.current_cumulative_reward += reward + point
+        self.reward_history.append(self.current_cumulative_reward)
 
         return reward
 
@@ -161,49 +110,54 @@ class DQNReplayer:
 class Sekiro_Agent:
     def __init__(
         self,
-        n_action = 5,      # 动作数量
+        n_action = n_action,      # 动作数量
         batch_size = 8,    # 样本抽取数量
         gamma = 0.99,      # 奖励衰减
+        epsilon = 1.0,
+        epsilon_decrease_rate = 0.9995,
         replay_memory_size = 50000,    # 记忆容量
-        action_weight = None,    # 动作选择的权重
+        load_weights = False
     ):
         self.n_action = n_action
         self.gamma = gamma
-        self.batch_size = batch_size    
+        self.epsilon = epsilon
+        self.epsilon_decrease_rate = epsilon_decrease_rate
+        self.batch_size = batch_size
+        self.load_weights = load_weights
 
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
         self.reward_system = RewardSystem()                # 奖惩系统
         self.replayer = DQNReplayer(replay_memory_size)    # 经验回放
 
-        if action_weight:
-            self.action_weight = action_weight
-        else:
-            self.action_weight = [1.0 for _ in range(self.n_action)]
-
     def build_network(self):
         model = resnet(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
-            output = self.n_action
+            outputs = self.n_action
         )
-
-        if os.path.exists(DQN_WEIGHTS):
-            model.load_weights(DQN_WEIGHTS)
-            print('Load ' + DQN_WEIGHTS)
-        elif os.path.exists(MODEL_WEIGHTS):
-            model.load_weights(MODEL_WEIGHTS)
-            print('Load ' + MODEL_WEIGHTS)
-        else:
-            print('Nothing to load')
+        if self.load_weights:
+            if os.path.exists(DQN_WEIGHTS):
+                model.load_weights(DQN_WEIGHTS)
+                print('Load ' + DQN_WEIGHTS)
+            elif os.path.exists(MODEL_WEIGHTS):
+                model.load_weights(MODEL_WEIGHTS)
+                print('Load ' + MODEL_WEIGHTS)
+            else:
+                print('Nothing to load')
 
         return model
 
     # 行为选择
     def choose_action(self, screen):
-        screen = roi(screen, x, x_w, y, y_h)
-        q_values = self.evaluate_net.predict([screen.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)])[0]
-        q_values *= self.action_weight
-        action = act(q_values)
-        return action
+        if np.random.rand() < self.epsilon:
+            q_values = np.random.randint(self.n_action)
+            self.epsilon *= self.epsilon_decrease_rate
+        else:
+            screen = roi(screen, x, x_w, y, y_h)
+            q_values = self.evaluate_net.predict([screen.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)])[0]
+            q_values = np.argmax(q_values)
+
+        act(q_values)
+        return q_values
 
     # 学习
     def learn(self):

@@ -18,19 +18,17 @@ update_freq = 200
 # 更新目标网络的频率
 target_network_update_freq = 500
 
-
-
 # ---*---
 
 # 离线学习
-def learn_offline(boss, start, end):
+def learn_offline(target, start, end):
 
-    sekiro_agent = Sekiro_Agent()
+    sekiro_agent = Sekiro_Agent(load_weights = True)
 
     for i in range(start, end+1):
 
         filename = f'training_data-{i}.npy'
-        data = np.load(os.path.join('The_battle_memory', boss, filename), allow_pickle=True)
+        data = np.load(os.path.join('The_battle_memory', target, filename), allow_pickle=True)
         print('\n', filename, f'total:{len(data):>5}')
 
         for step in range(len(data)-1):
@@ -40,8 +38,7 @@ def learn_offline(boss, start, end):
             next_screen = data[step+1][0]
 
             status = get_status(screen)
-            sekiro_agent.reward_system.store(status)    # 存储状态 [我方生命, 我方架势, 敌方生命, 敌方架势]
-            reward = sekiro_agent.reward_system.get_reward()    # 计算 reward
+            reward = sekiro_agent.reward_system.get_reward(status, np.argmax(action))    # 计算 reward
 
             sekiro_agent.replayer.store(
                 roi(screen, x, x_w, y, y_h),
@@ -65,5 +62,6 @@ def learn_offline(boss, start, end):
 
 # ---*---
 
-boss = 'Genichiro_Ashina' # 苇名弦一郎
-learn_offline(boss, start=1, end=101)
+if __name__ == '__main__':
+    target = 'Genichiro_Ashina' # 苇名弦一郎
+    learn_offline(target, start=2, end=2)
