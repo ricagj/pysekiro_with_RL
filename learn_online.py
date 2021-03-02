@@ -1,8 +1,10 @@
 import time
 
+import cv2
 import numpy as np
 
 from pysekiro.Agent import Sekiro_Agent
+from pysekiro.collect_data import action_map
 from pysekiro.get_keys import key_check
 from pysekiro.get_status import get_status
 from pysekiro.get_vertices import roi
@@ -20,14 +22,12 @@ update_freq = 200
 # 更新目标网络的频率
 target_network_update_freq = 500
 
-action_weight = [1.0, 2.0, 5.0, 5.0, 0.1]
-
 # ---*---
 
 # 在线学习
 def learn_online(train=False):
 
-    sekiro_agent = Sekiro_Agent(action_weight=action_weight)
+    sekiro_agent = Sekiro_Agent()
 
     paused = True
     print("Ready!")
@@ -40,19 +40,18 @@ def learn_online(train=False):
 
             # 暂停状态启用，保证 screen 和 next_screen 连续
             screen = get_screen()
+            print(f'\r{" ":>23}', end='')
 
         else:
             last_time = time.time()
 
             # 选取动作，同时执行动作
-            action = sekiro_agent.choose_action(screen)
-
-            next_screen = get_screen()
+            action = sekiro_agent.choose_action(screen)    # Agent
 
             status = get_status(screen)
-            sekiro_agent.reward_system.store(status)    # 存储状态 [我方生命, 我方架势, 敌方生命, 敌方架势]
-            reward = sekiro_agent.reward_system.get_reward()    # 计算 reward
-
+            reward = sekiro_agent.reward_system.get_reward(status, np.argmax(action))    # 计算 reward
+            
+            next_screen = get_screen()
             if train:
                 sekiro_agent.replayer.store(
                     roi(screen, x, x_w, y, y_h),
@@ -69,12 +68,12 @@ def learn_online(train=False):
                         sekiro_agent.save_evaluate_network()
 
                     if step % target_network_update_freq == 0:
-                        print(f'step:{step:>5}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>}')
+                        print(f'\n step:{step:>5}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>} \n')
                         sekiro_agent.update_target_network()
 
             screen = next_screen
 
-            print(f'Loop took {round(time.time()-last_time, 3):>5} seconds.')
+            print(f'\rloop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[np.argmax(action)]:>10}. Self HP: {Self_HP:>3}, Self Posture: {Self_Posture:>3}, Target HP: {Target_HP:>3}, Target Posture: {Target_Posture:>3}', end='')
 
         keys = key_check()
         # 优先检测终止指令，再检测暂停指令
@@ -83,9 +82,7 @@ def learn_online(train=False):
                 sekiro_agent.save_evaluate_network()    # 学习完毕，保存网络权重
             sekiro_agent.reward_system.save_reward_curve(save_path='.\\test.png')    # 绘制 reward 曲线并保存在当前目录
             break
-
-        # 准备切换暂停状态
-        elif 'T' in keys:
+        elif 'T' in keys:    # 切换状态(暂停\继续)
             if paused:
                 paused = False
                 print('\nStarting!')
@@ -99,4 +96,5 @@ def learn_online(train=False):
 
 # ---*---
 
-learn_online(train=True)
+if __name__ == '__main__':
+    learn_online()
