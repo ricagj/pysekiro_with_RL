@@ -20,8 +20,8 @@ def main():
         if not paused:
             last_time = time.time()
 
-            screen = get_screen()
-            action = get_output()
+            screen = get_screen()    # 获取屏幕图像
+            action = get_output()    # 获取按键输出
 
             status = get_status(screen)
             Self_HP, Self_Posture, Target_HP, Target_Posture = status
@@ -37,8 +37,7 @@ def main():
             print(f'\rLoop took {round(time.time()-last_time, 3):>5} seconds. Self HP: {Self_HP:>3}, Self Posture: {Self_Posture:>3}, Target HP: {Target_HP:>3}, Target Posture: {Target_Posture:>3}', end = '')
 
         keys = key_check()
-        # 优先检测终止指令，再检测暂停指令
-        if 'P' in keys:
+        if 'P' in keys:    # 结束
             cv2.destroyAllWindows()
             break
         elif 'T' in keys:    # 切换状态(暂停\继续)

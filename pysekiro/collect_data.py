@@ -8,7 +8,7 @@ from pysekiro.get_keys import key_check
 from pysekiro.get_status import get_status
 from pysekiro.grab_screen import get_screen
 
-# 根据 类Data_collection里的get_output方法
+# 根据 get_output 函数来定义
 action_map = {
     0: 'Attack',
     1: 'Deflect',
@@ -39,7 +39,7 @@ class Data_collection:
         self,
         target
     ):
-        self.target = target
+        self.target = target    # 目标
         self.dataset = list()    # 保存数据的容器
         self.save_path = os.path.join('The_battle_memory', self.target)    # 保存的位置
         if not os.path.exists(self.save_path):    # 确保保存的位置存在
@@ -51,13 +51,15 @@ class Data_collection:
         print('\n\nStop, please wait')
         n = 1
         while True:
-            save_path = os.path.join(self.save_path, f'training_data-{n}.npy')
+            filename = f'training_data-{n}.npy'
+            save_path = os.path.join(self.save_path, filename)
             n += 1
             if not os.path.exists(save_path):    # 找到不会文件名重复的位置保存
                 print(save_path)
                 np.save(save_path, self.dataset)
                 break
         print('Done!')
+        return filename[:-4]
 
     def collect_data(self):
 
@@ -67,26 +69,27 @@ class Data_collection:
             if not paused:
                 last_time = time.time()
 
-                screen = get_screen()         # 获取屏幕图像
+                screen = get_screen()    # 获取屏幕图像
                 action = get_output()    # 获取按键输出
+                self.dataset.append([screen, action])    # 图像和输出打包在一起，保证一一对应
 
                 status = get_status(screen)
                 Self_HP, Self_Posture, Target_HP, Target_Posture = status
                 reward = self.reward_system.get_reward(status, np.argmax(action))    # 计算 reward
 
-                self.dataset.append([screen, action])    # 图像和输出打包在一起，保证一一对应
-
                 print(f'\rloop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[np.argmax(action)]:>10}. Self HP: {Self_HP:>3}, Self Posture: {Self_Posture:>3}, Target HP: {Target_HP:>3}, Target Posture: {Target_Posture:>3}', end='')
 
             keys = key_check()
             if 'P' in keys:    # 结束，保存数据
-                self.save_data()
-                self.reward_system.save_reward_curve(save_path='.\\collect_data_reward.png')    # 绘制 reward 曲线并保存在当前目录
+                filename = self.save_data()
+                self.reward_system.save_reward_curve(save_path=filename+'.png')    # 绘制 reward 曲线并保存在当前目录
                 break
             elif 'T' in keys:    # 切换状态(暂停\继续)
                 if paused:
                     paused = False
+                    print('\nStarting!')
                     time.sleep(1)
                 else:
                     paused = True
+                    print('\nPausing!')
                     time.sleep(1)

@@ -56,28 +56,24 @@ def Move_Forward():
 
 def Step_Dodge():
     # print('\r\t\t\tStep Dodge', end='')
-    PressKey(W)
     PressKey(LSHIFT)
     time.sleep(0.1)
     ReleaseKey(LSHIFT)
 
 def Jump():
     # print('\r\t\t\tJump', end='')
-    PressKey(W)
     PressKey(SPACE)
     time.sleep(0.1)
     ReleaseKey(SPACE)
 
 def Attack():
     # print('\r\t\t\tAttack', end='')
-    PressKey(W)
     PressKey(J)
     time.sleep(0.1)
     ReleaseKey(J)
 
 def Deflect():
     # print('\r\t\t\tDeflect', end='')
-    PressKey(W)
     PressKey(K)
     time.sleep(0.08)
     ReleaseKey(K)
@@ -98,9 +94,9 @@ def act(values):
     elif values == 4:
         act = Move_Forward # 其他
     
-    # # 暂时只向前移动，其他走位以后再考虑
-    # move_process = threading.Thread(target=Move_Forward)
-    # move_process.start()
+    # 暂时只向前移动，其他走位以后再考虑
+    move_process = threading.Thread(target=Move_Forward)
+    move_process.start()
 
     act_process = threading.Thread(target=act)
     act_process.start()
