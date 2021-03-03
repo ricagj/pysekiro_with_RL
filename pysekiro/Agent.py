@@ -34,33 +34,17 @@ n_action = 5
 
 # ---*---
 
-# # 根据 actions.py
-# action_point = {
-#     0:  0.15,    # 攻击
-#     1:  0.12,    # 弹反
-#     2:  0.1,    # 垫步
-#     3:  0.1,    # 跳跃
-#     4: -0.05    # 其他
-# }
-
 class RewardSystem:
     def __init__(self):
-        """     
-        设置 正强化 和 负强化
-        由于计算 reward 的算法是 现在的状态减去过去的状态，所以
-            类型     | 状态 | reward | 权重正负 |
-            我方生命 |  +   |   +    |    +    |
-            我方生命 |  -   |   -    |    +    |
-            我方架势 |  +   |   -    |    -    |
-            我方架势 |  -   |   +    |    -    |
-            敌方生命 |  +   |   -    |    -    |
-            敌方生命 |  -   |   +    |    -    |
-            敌方架势 |  +   |   +    |    +    |
-            敌方架势 |  -   |   -    |    +    |
-        """
-        self.reward_weights = [0.1, -0.1, -0.1, 0.1] # = [自身HP，自身架势，目标HP，目标架势]
-
+        self.reward_weights = [0.1, -0.1, -0.1, 0.1] # = [自身生命，自身架势，目标生命，目标架势]
         self.past_status = [152, 0, 100, 0]
+        # self.action_point = {
+        #     0: 1,    # 攻击
+        #     1: 1,    # 弹反
+        #     2: 1,    # 垫步
+        #     3: 1,    # 跳跃
+        #     4: 1    # 其他
+        # }
 
         # 记录积累reward过程
         self.current_cumulative_reward = 0
@@ -68,22 +52,21 @@ class RewardSystem:
 
     def get_reward(self, status, action):
 
+        # 计算 现在的状态 - 过去的状态 的差值，然后把现在的状态赋值给self.past_status
         self.status = status
         status_difference = np.array(self.status) - np.array(self.past_status)
         self.past_status = self.status
 
-        # if np.any(status_difference):
-        #     point = action_point[action]
-        # else:
-        #     point = 0
-        reward = sum(status_difference * self.reward_weights)    #  + point
-        
+        # 差值乘上正负强化的权重并求和
+        reward = sum(status_difference * self.reward_weights)    ## * self.action_point[action]
+
         self.current_cumulative_reward += reward
         self.reward_history.append(self.current_cumulative_reward)
 
         return reward
 
     def save_reward_curve(self, save_path='reward.png'):
+        plt.rcParams['figure.figsize'] = 30, 15
         plt.plot(np.arange(len(self.reward_history)), self.reward_history)
         plt.ylabel('reward')
         plt.xlabel('training steps')
@@ -115,26 +98,32 @@ class DQNReplayer:
 class Sekiro_Agent:
     def __init__(
         self,
-        n_action = n_action,      # 动作数量
-        batch_size = 8,    # 样本抽取数量
-        gamma = 0.99,      # 奖励衰减
+        n_action = n_action, 
+        gamma = 0.99,
+        batch_size = 8,
+        replay_memory_size = 50000,
         epsilon = 1.0,
-        epsilon_decrease_rate = 0.9995,
-        replay_memory_size = 50000,    # 记忆容量
+        epsilon_decrease_rate = 0.999,
         model_weights = None
     ):
-        self.n_action = n_action
-        self.gamma = gamma
-        self.epsilon = epsilon
-        self.epsilon_decrease_rate = epsilon_decrease_rate
-        self.batch_size = batch_size
-        self.model_weights = model_weights
+        self.n_action = n_action    # 动作数量
+        
+        self.gamma = gamma    # 奖励衰减
+
+        self.batch_size = batch_size                    # 样本抽取数量
+        self.replay_memory_size = replay_memory_size    # 记忆容量
+
+        self.epsilon = epsilon                                # 探索参数
+        self.epsilon_decrease_rate = epsilon_decrease_rate    # 探索衰减率
+
+        self.model_weights = model_weights    # 指定读取的模型参数的路径
 
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
         self.reward_system = RewardSystem()                # 奖惩系统
-        self.replayer = DQNReplayer(replay_memory_size)    # 经验回放
+        self.replayer = DQNReplayer(self.replay_memory_size)    # 经验回放
 
+    # 构建网络
     def build_network(self):
         model = resnet(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
             outputs = self.n_action
@@ -149,8 +138,12 @@ class Sekiro_Agent:
         return model
 
     # 行为选择
-    def choose_action(self, screen):
-        if np.random.rand() < self.epsilon:
+    def choose_action(self, screen, train=False):
+        r = 1
+        if train:
+            r = np.random.rand()
+        
+        if r < self.epsilon:
             q_values = np.random.randint(self.n_action)
             self.epsilon *= self.epsilon_decrease_rate
         else:

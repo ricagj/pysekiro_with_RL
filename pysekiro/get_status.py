@@ -31,7 +31,7 @@ def get_Self_Posture(img):
     retval, img_th = cv2.threshold(img_roi, 100, 255, cv2.THRESH_TOZERO)
     img_th = np.reshape(img_th, (img_roi.shape))
     
-    if int(img_th[0]) - int(img_th[1]) > 20:
+    if int(img_th[0]) - int(img_th[1]) > 15:
         if img_th[1] in range(100, 125) and img_th[0] in range(145, 165):
             Self_Posture = get_value(img_th)
         elif img_th[1] in range(135, 160) and img_th[0] in range(180, 220):
@@ -61,7 +61,7 @@ def get_Target_Posture(img):
     retval, img_th = cv2.threshold(img_roi, 100, 255, cv2.THRESH_TOZERO)
     img_th = np.reshape(img_th, (img_roi.shape))
     
-    if int(img_th[0]) - int(img_th[1]) > 20:
+    if int(img_th[0]) - int(img_th[1]) > 15:
         if img_th[1] in range(100, 125) and img_th[0] in range(175, 222):
             Target_Posture = get_value(img_th)
         elif img_th[1] in range(125, 210) and img_th[0] in range(190, 250):

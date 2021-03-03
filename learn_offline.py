@@ -14,9 +14,9 @@ y   = 30
 y_h = 230
 
 # 训练评估网络的频率
-update_freq = 30
+update_freq = 150
 # 更新目标网络的频率
-target_network_update_freq = 150
+target_network_update_freq = 900
 
 # ---*---
 
@@ -53,9 +53,9 @@ def learn_offline(target, start, end, model_weights=None):
                     sekiro_agent.save_evaluate_network()
 
                 if step % target_network_update_freq == 0:
-                    print(f'step:{step:>5}')
+                    print(f'\r step:{step:>5}', end='')
                     sekiro_agent.update_target_network()
 
         sekiro_agent.save_evaluate_network()    # 这个数据学习完毕，保存网络权重
         sekiro_agent.reward_system.save_reward_curve()    # 绘制 reward 曲线并保存在当前目录
-        print(f'[summary] round:{i:>3}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>}')
+        print(f'\r [summary] round:{i:>3}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>}')

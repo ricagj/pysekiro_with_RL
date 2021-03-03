@@ -18,14 +18,14 @@ y   = 30
 y_h = 230
 
 # 训练评估网络的频率
-update_freq = 30
+update_freq = 150
 # 更新目标网络的频率
-target_network_update_freq = 150
+target_network_update_freq = 900
 
 # ---*---
 
 # 在线学习
-def learn_online(train=False, model_weights=None):
+def learn_online(model_weights=None, train=False):
 
     sekiro_agent = Sekiro_Agent(model_weights=model_weights)
 
@@ -46,7 +46,7 @@ def learn_online(train=False, model_weights=None):
             last_time = time.time()
 
             # 选取动作，同时执行动作
-            action = sekiro_agent.choose_action(screen)    # Agent
+            action = sekiro_agent.choose_action(screen, train)    # Agent
 
             status = get_status(screen)
             Self_HP, Self_Posture, Target_HP, Target_Posture = status
