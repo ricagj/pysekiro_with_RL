@@ -17,20 +17,20 @@ action_map = {
     4: 'O'    # Other
 }
 
-def get_output():    # 对按键信息进行独热编码
+def get_output(keys):    # 对按键信息进行独热编码
 
-    keys = key_check()
+    output = [0, 0, 0, 0, 0]
 
     if   'J' in keys:
-        output = [1,0,0,0,0]
+        output[0] = 1
     elif 'K' in keys:
-        output = [0,1,0,0,0]
+        output[1] = 1
     elif 'LSHIFT' in keys:
-        output = [0,0,1,0,0]
+        output[2] = 1
     elif 'SPACE' in keys:
-        output = [0,0,0,1,0]
+        output[3] = 1
     else:
-        output = [0,0,0,0,1]
+        output[4] = 1
 
     return output
 
@@ -46,6 +46,8 @@ class Data_collection:
             os.mkdir(self.save_path)
         np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
         self.reward_system = RewardSystem()
+
+        self.step = 0
 
     def save_data(self):
         print('\n\nStop, please wait')
@@ -66,30 +68,33 @@ class Data_collection:
         print('Ready!')
         paused = True
         while True:
-            if not paused:
-                last_time = time.time()
+            last_time = time.time()
+            keys = key_check()
+            if paused:
+                if 'T' in keys:
+                    paused = False
+                    print('Starting!')
+            else:
+                
+                self.step += 1
 
                 screen = get_screen()    # 获取屏幕图像
-                action = get_output()    # 获取按键输出
-                self.dataset.append([screen, action])    # 图像和输出打包在一起，保证一一对应
+                if not (np.sum(screen == 0) > 5000):    # 正常情况下不会有那么多值为0的像素点，除非黑屏了
+                    action = get_output(keys)    # 获取按键输出
+                    self.dataset.append([screen, action])    # 图像和输出打包在一起，保证一一对应
 
-                status = get_status(screen)
-                Self_HP, Self_Posture, Target_HP, Target_Posture = status
-                reward = self.reward_system.get_reward(status, np.argmax(action))    # 计算 reward
+                    status = get_status(screen)
+                    Self_HP, Self_Posture, Target_HP, Target_Posture = status
+                    reward = self.reward_system.get_reward(status)    # 计算 reward
 
-                print(f'\rloop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[np.argmax(action)]:>10}. Self HP: {Self_HP:>3}, Self Posture: {Self_Posture:>3}, Target HP: {Target_HP:>3}, Target Posture: {Target_Posture:>3}', end='')
+                    # 降低数据采集的频率，两次采集的时间间隔为0.1秒
+                    t = 0.1-(time.time()-last_time)
+                    if t > 0:
+                        time.sleep(t)
 
-            keys = key_check()
-            if 'P' in keys:    # 结束，保存数据
-                filename = self.save_data()
-                self.reward_system.save_reward_curve(save_path=filename+'.png')    # 绘制 reward 曲线并保存在当前目录
-                break
-            elif 'T' in keys:    # 切换状态(暂停\继续)
-                if paused:
-                    paused = False
-                    print('\nStarting!')
-                    time.sleep(1)
-                else:
-                    paused = True
-                    print('\nPausing!')
-                    time.sleep(1)
+                    print(f'\rstep:{self.step}. Loop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[np.argmax(action)]:>10}. Self HP: {Self_HP:>3}, Self Posture: {Self_Posture:>3}, Target HP: {Target_HP:>3}, Target Posture: {Target_Posture:>3}', end='')
+
+                if 'P' in keys:    # 结束，保存数据
+                    filename = self.save_data()
+                    self.reward_system.save_reward_curve(save_path='Data_quality\\'+self.target+'_'+filename+'.png')    # 绘制 reward 曲线并保存在当前目录
+                    break
