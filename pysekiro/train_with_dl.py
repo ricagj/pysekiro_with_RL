@@ -2,8 +2,8 @@ import os
 
 import numpy as np
 
-from pysekiro.model import resnet
 from pysekiro.get_vertices import roi
+from pysekiro.model import MODEL
 
 ROI_WIDTH = 100
 ROI_HEIGHT = 200
@@ -25,19 +25,13 @@ def train(
     model_weights=None
     ):
 
-    model = resnet(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
-        outputs = n_action
+    model = MODEL(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
+        outputs = n_action,
+        model_weights = model_weights
     )
     model.summary()
 
-    if model_weights:
-        if os.path.exists(model_weights):
-            model.load_weights(model_weights)
-            print('Load ' + model_weights)
-        else:
-            print('Nothing to load')
-    else:
-        model_weights = 'sekiro_weights.h5'
+    model_weights = 'dl_weights.h5'
 
     for i in range(start, end+1):
 

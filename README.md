@@ -13,11 +13,6 @@ https://github.com/analoganddigital/DQN_play_sekiro
 https://github.com/ZhiqingXiao/rl-book/blob/master/chapter10_atari/BreakoutDeterministic-v4_tf.ipynb  
 https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow/tree/master/contents/5_Deep_Q_Network  
 
-# 目前所遇到的问题
-
-1. 当前的 reward 属于过去，而不属于现在
-2. 当前的 reward 只与状态有关，未与动作建立联系
-
 # 说明
 
 #### 本项目将从三个角度来训练**智能体**  
@@ -25,10 +20,11 @@ https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow/tree/master
 2. 用强化学习从零开始在实战中学习
 3. 用强化学习从已有的数据中学习，再在实战中继续学习
 
-具体见 [教程](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/Tutorial.ipynb)
+[快速开始](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/Quick_start.ipynb)  
 
-# 了解项目各部分是如何工作的
-具体见 [部分工作原理](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)
+[了解训练是如何进行的](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/How_is_it_trained.ipynb)  
+
+[了解项目各部分是如何工作的](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)  
 
 # 准备
 
