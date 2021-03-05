@@ -21,9 +21,14 @@ target_network_update_freq = 900
 # ---*---
 
 # 离线学习
-def learn_offline(target, start, end, model_weights=None):
+def learn_offline(target, start, end, model_weights=None, save_path=None):
 
-    sekiro_agent = Sekiro_Agent(model_weights=model_weights)
+    sekiro_agent = Sekiro_Agent(
+        batch_size = 128,
+        replay_memory_size = 200000,
+        model_weights=model_weights,
+        save_path = save_path
+    )
 
     for i in range(start, end+1):
 
@@ -33,13 +38,16 @@ def learn_offline(target, start, end, model_weights=None):
 
         for step in range(len(data)-1):
 
-            screen = data[step][0]
-            action = data[step][1]
-            next_screen = data[step+1][0]
+            # 读取 状态S、动作A 和 新状态S'
+            screen = data[step][0]           # 状态S
+            action = data[step][1]           # 动作A
+            next_screen = data[step+1][0]    # 新状态S'
 
+            # 获取 奖励R
             status = get_status(screen)
-            reward = sekiro_agent.reward_system.get_reward(status, np.argmax(action))    # 计算 reward
+            reward = sekiro_agent.reward_system.get_reward(status)    # 奖励R
 
+            # 集齐 (S, A, R, S')，开始存储
             sekiro_agent.replayer.store(
                 roi(screen, x, x_w, y, y_h),
                 np.argmax(action),
@@ -48,11 +56,11 @@ def learn_offline(target, start, end, model_weights=None):
             )    # 存储经验
 
             if step >= sekiro_agent.batch_size:
-                if step % update_freq == 0:
+                if step % update_freq == 0:    # 更新评估网络
                     sekiro_agent.learn()
                     sekiro_agent.save_evaluate_network()
 
-                if step % target_network_update_freq == 0:
+                if step % target_network_update_freq == 0:    # 更新目标网络
                     print(f'\r step:{step:>5}', end='')
                     sekiro_agent.update_target_network()
 

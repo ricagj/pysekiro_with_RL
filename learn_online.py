@@ -25,9 +25,12 @@ target_network_update_freq = 900
 # ---*---
 
 # 在线学习
-def learn_online(model_weights=None, train=False):
+def learn_online(model_weights=None, save_path=None, train=False):
 
-    sekiro_agent = Sekiro_Agent(model_weights=model_weights)
+    sekiro_agent = Sekiro_Agent(
+        model_weights=model_weights,
+        save_path = save_path
+    )
 
     paused = True
     print("Ready!")
@@ -36,21 +39,22 @@ def learn_online(model_weights=None, train=False):
 
     while True:
 
+        last_time = time.time()
+        keys = key_check()
+        
         if paused:
-
-            # 暂停状态启用，保证 screen 和 next_screen 连续
             screen = get_screen()
-            print(f'\r{" ":>23}', end='')
-
+            if 'T' in keys:
+                paused = False
+                print('\nStarting!')
         else:
-            last_time = time.time()
 
             # 选取动作，同时执行动作
-            action = sekiro_agent.choose_action(screen, train)    # Agent
+            action = sekiro_agent.choose_action(screen, train)
 
             status = get_status(screen)
             Self_HP, Self_Posture, Target_HP, Target_Posture = status
-            reward = sekiro_agent.reward_system.get_reward(status, np.argmax(action))    # 计算 reward
+            reward = sekiro_agent.reward_system.get_reward(status)    # 计算 reward
 
             next_screen = get_screen()
             if train:
@@ -75,22 +79,12 @@ def learn_online(model_weights=None, train=False):
             screen = next_screen
 
             print(f'\rloop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[np.argmax(action)]:>10}. Self HP: {Self_HP:>3}, Self Posture: {Self_Posture:>3}, Target HP: {Target_HP:>3}, Target Posture: {Target_Posture:>3}', end='')
-
-        keys = key_check()
-        # 优先检测终止指令，再检测暂停指令
-        if 'P' in keys:
-            if train:
-                sekiro_agent.save_evaluate_network()    # 学习完毕，保存网络权重
-            sekiro_agent.reward_system.save_reward_curve(save_path='.\\test.png')    # 绘制 reward 曲线并保存在当前目录
-            break
-        elif 'T' in keys:    # 切换状态(暂停\继续)
-            if paused:
-                paused = False
-                print('\nStarting!')
-                time.sleep(1)
-            else:
-                paused = True
-                print('\nPausing!')
-                time.sleep(1)
+            
+            
+            if 'P' in keys:
+                if train:
+                    sekiro_agent.save_evaluate_network()    # 学习完毕，保存网络权重
+                sekiro_agent.reward_system.save_reward_curve(save_path='learn_online.png')    # 绘制 reward 曲线并保存在当前目录
+                break
 
     print('\nDone!')
