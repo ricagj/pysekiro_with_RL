@@ -8,79 +8,72 @@ from pysekiro.direct_keys import PressKey, ReleaseKey
 # ---*---
 
 # direct keys
-W = 0x11
-S = 0x1F
-A = 0x1E
-D = 0x20
-# R = 0x13 # 使用道具 | Use Item
-# F = 0x21 # 钩绳 | Grappling Hook
-J = 0x24
-K = 0x25
-SPACE = 0x39
-LSHIFT = 0x2A
-# LCONTROL = 0x1D # 使用义手忍具 | Use Prosthetic Tool
-
-Y = 0x15
+dk = {
+    'W' : 0x11,
+    'S' : 0x1F,
+    'A' : 0x1E,
+    'D' : 0x20,
+    #'R' : 0x13, # 使用道具 | Use Item
+    #'F' : 0x21, # 钩绳 | Grappling Hook
+    'J' : 0x24,
+    'K' : 0x25,
+    'SPACE'    : 0x39,
+    'LSHIFT'   : 0x2A,
+    #'LCONTROL' : 0x1D, # 使用义手忍具 | Use Prosthetic Tool
+    # 'Y' : 0x15,
+}
 
 # ---*---
 
 def Move_Forward():
     # print('\r\t\t\tMove Forward', end='')
-    PressKey(W)
+    PressKey(dk['W'])
     time.sleep(1)
-    ReleaseKey(W)
+    ReleaseKey(dk['W'])
 
 # def Move_Back():
-#     print('\r\t\t\tMove Back', end='')
-#     PressKey(S)
+#     PressKey(dk['S'])
 #     time.sleep(1)
-#     ReleaseKey(S)
+#     ReleaseKey(dk['S'])
 
 # def Move_Left():
-#     print('\r\t\t\tMove Left', end='')
-#     PressKey(A)
+#     PressKey(dk['A'])
 #     time.sleep(1)
-#     ReleaseKey(A)
+#     ReleaseKey(dk['A'])
 
 # def Move_Right():
-#     print('\r\t\t\tMove Right', end='')
-#     PressKey(D)
+#     PressKey(dk['D'])
 #     time.sleep(1)
-#     ReleaseKey(D)
+#     ReleaseKey(dk['D'])
 
 # def Lock_On():
-#     print('\r\t\t\tStep Dodge', end='')
-#     PressKey(Y)
+#     PressKey(dk['Y'])
 #     time.sleep(0.1)
-#     ReleaseKey(Y)
+#     ReleaseKey(dk['Y'])
 
 def Step_Dodge():
-    # print('\r\t\t\tStep Dodge', end='')
-    PressKey(LSHIFT)
+    PressKey(dk['LSHIFT'])
     time.sleep(0.1)
-    ReleaseKey(LSHIFT)
+    ReleaseKey(dk['LSHIFT'])
 
 def Jump():
-    # print('\r\t\t\tJump', end='')
-    PressKey(SPACE)
+    PressKey(dk['SPACE'])
     time.sleep(0.1)
-    ReleaseKey(SPACE)
+    ReleaseKey(dk['SPACE'])
 
 def Attack():
-    # print('\r\t\t\tAttack', end='')
-    PressKey(J)
+    PressKey(dk['J'])
     time.sleep(0.1)
-    ReleaseKey(J)
+    ReleaseKey(dk['J'])
 
 def Deflect():
-    # print('\r\t\t\tDeflect', end='')
-    PressKey(K)
-    time.sleep(0.08)
-    ReleaseKey(K)
+    PressKey(dk['K'])
+    time.sleep(0.1)
+    ReleaseKey(dk['K'])
 
 # ---*---
 
-# 根据 collect_data.py
+# 根据 collect_data.py 中的 get_output()
 def act(values):
     
     if   values == 0:
@@ -92,11 +85,7 @@ def act(values):
     elif values == 3:
         act = Jump       # 跳跃
     elif values == 4:
-        act = Move_Forward # 其他
-    
-    # 暂时只向前移动，其他走位以后再考虑
-    move_process = threading.Thread(target=Move_Forward)
-    move_process.start()
+        act = Move_Forward # 其他（暂时用 移动 前 替代）
 
     act_process = threading.Thread(target=act)
     act_process.start()
