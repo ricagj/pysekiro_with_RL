@@ -17,11 +17,6 @@ x_w = 290
 y   = 30
 y_h = 230
 
-# 训练评估网络的频率
-update_freq = 50
-# 更新目标网络的频率
-target_network_update_freq = 300
-
 # ---*---
 
 # 在线学习
@@ -41,7 +36,6 @@ def learn_online(model_weights=None, save_path=None):
     print("Ready!")
 
     step = 0    # 计步器
-    step_train = 0    # 计步器
 
     while True:
 
@@ -85,16 +79,10 @@ def learn_online(model_weights=None, save_path=None):
                         roi(next_screen, x, x_w, y, y_h)
                     )    # 存储经验
 
-                    # ---------- train ----------
+                    # ---------- learn ----------
 
-                    step_train += 1
-                    if step_train >= sekiro_agent.batch_size:
-                        if step_train % update_freq == 0:
-                            sekiro_agent.learn()    # 更新评估网络
-                            sekiro_agent.save_evaluate_network()    # 保存网络权重
-                        if step_train % target_network_update_freq == 0:    # 更新目标网络
-                            print(f'\n step_train:{step_train:>4}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>} \n')
-                            sekiro_agent.update_target_network()
+                    sekiro_agent.step += 1
+                    sekiro_agent.learn()
 
             # 降低数据采集的频率，两次采集的时间间隔为0.1秒
             t = 0.1-(time.time()-last_time)

@@ -72,7 +72,7 @@ class Data_collection:
                     paused = False
                     print('Starting!')
             else:
-                
+
                 self.step += 1
 
                 screen = get_screen()    # 获取屏幕图像
