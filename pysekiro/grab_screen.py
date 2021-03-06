@@ -51,7 +51,6 @@ FRAME_COUNT = 1
 
 def get_screen():
     # 屏幕捕获，并图像缩放
-    # Grab screen, and resize the image
     screen = grab_screen(region=(0, 30, GAME_WIDTH, GAME_HEIGHT+30))
     screen = cv2.resize(screen, (STANDARD_WIDTH, STANDARD_HEIGHT))
 
