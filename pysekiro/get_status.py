@@ -73,8 +73,8 @@ def get_Target_Posture(img):
             Target_Posture = 0
     else:
         Target_Posture = 0
-    print('\n', img_th)
-    print(Target_Posture)
+    # print('\n', img_th)
+    # print(Target_Posture)
     return Target_Posture
 
 # ---*---

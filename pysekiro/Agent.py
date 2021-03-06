@@ -30,8 +30,6 @@ class RewardSystem:
     def __init__(self):
         self.past_status = [152, 0, 100, 0]
 
-        self.status_processing = lambda value, limit: 0 if abs(value) > limit else value
-
         # 记录积累reward过程
         self.current_cumulative_reward = 0
         self.reward_history = list()
@@ -41,13 +39,13 @@ class RewardSystem:
 
             self.status = status
 
-            # 计算 现在的状态 - 过去的状态 的差值
-            s1 = self.status_processing(round(self.status[0] - self.past_status[0], 2) *  1, 152.0)
-            s2 = self.status_processing(round(self.status[1] - self.past_status[1], 2) * -1,  20.0)
-            t1 = self.status_processing(round(self.status[2] - self.past_status[2], 2) * -1,  20.0)
-            t2 = self.status_processing(round(self.status[3] - self.past_status[3], 2) *  1,  20.0)
+            # 每个状态的计算方法：(保留两位小数(现在的状态 - 过去的状态)) * 正负强化权重
+            s1 = round(self.status[0] - self.past_status[0], 2) *  1    # 自身生命
+            s2 = round(self.status[1] - self.past_status[1], 2) * -1    # 自身架势
+            t1 = round(self.status[2] - self.past_status[2], 2) * -1    # 目标生命
+            t2 = round(self.status[3] - self.past_status[3], 2) *  1    # 目标架势
 
-            reward = 0.2 * (s1 + t1*10) + 0.8 * (s2 + t2)
+            reward = 0.2 * (s1 + t1) + 0.8 * (s2 + t2)
             # print(f'  s1:{s1:>4}, s2:{s2:>4}, t1:{t1:>4}, t2:{t2:>4}, reward:{reward:>4}')
 
             self.past_status = self.status
@@ -98,6 +96,8 @@ class Sekiro_Agent:
         replay_memory_size = 50000,
         epsilon = 1.0,
         epsilon_decrease_rate = 0.999,
+        update_freq = 50,
+        target_network_update_freq = 300,
         model_weights = None,
         save_path = None
     ):
@@ -122,10 +122,14 @@ class Sekiro_Agent:
             print(tf.config.experimental.get_device_details(gpus[0])['device_name'])
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
-        self.reward_system = RewardSystem()                # 奖惩系统
+        self.reward_system = RewardSystem()                     # 奖惩系统
         self.replayer = DQNReplayer(self.replay_memory_size)    # 经验回放
 
-    # 构建网络
+        self.step = 0    # 计步
+        self.update_freq = update_freq    # 训练评估网络的频率
+        self.target_network_update_freq = target_network_update_freq    # 更新目标网络的频率
+
+    # 评估网络和目标网络的构建方法
     def build_network(self):
         model = MODEL(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
             outputs = self.n_action,
@@ -133,43 +137,55 @@ class Sekiro_Agent:
         )
         return model
 
-    # 行为选择
-    def choose_action(self, screen, train=False):
-        r = 1
+    # 行为选择与执行方法
+    def choose_action(self, screen, train):
         if train:
             r = np.random.rand()
+        else:
+            r = 1.01    # 永远大于 self.epsilon
         
+        # train = True 开启探索模式
         if r < self.epsilon:
+            self.epsilon *= self.epsilon_decrease_rate    # 逐渐减小探索参数, 降低行为的随机性
             q_values = np.random.randint(self.n_action)
-            self.epsilon *= self.epsilon_decrease_rate
+        
+        # train = False 直接进入这里
         else:
             screen = roi(screen, x, x_w, y, y_h)
             q_values = self.evaluate_net.predict([screen.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)])[0]
             q_values = np.argmax(q_values)
+        
+        # 执行动作
         act(q_values)
+        
         return q_values
 
-    # 学习
+    # 行为选择与执行方法
     def learn(self):
 
-        # 经验回放
-        screens, actions, rewards, next_screens = self.replayer.sample(self.batch_size)
+        if self.step >= self.batch_size and self.step % self.update_freq == 0:    # 更新评估网络
 
-        screens = screens.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
-        next_screens = next_screens.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
+            if self.step % self.target_network_update_freq == 0:    # 更新目标网络
+                print(f'\n step:{self.step:>4}, current_cumulative_reward:{self.reward_system.current_cumulative_reward:>5.3f}, memory:{self.replayer.count:7>} \n')
+                self.update_target_network() 
 
-        # 计算回报的估计值
-        next_qs = self.target_net.predict(next_screens)
-        next_max_qs = next_qs.max(axis=-1)
-        targets = self.evaluate_net.predict(screens)
-        targets[range(self.batch_size), actions] = rewards + self.gamma * next_max_qs
+            # 经验回放
+            screens, actions, rewards, next_screens = self.replayer.sample(self.batch_size)
 
-        self.evaluate_net.fit(screens, targets, verbose=0)
+            screens = screens.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
+            next_screens = next_screens.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
 
-    # 更新目标网络权重
+            # 计算回报的估计值
+            q_next = self.target_net.predict(next_screens)
+            q_target = self.evaluate_net.predict(screens)
+            q_target[range(self.batch_size), actions] = rewards + self.gamma * q_next.max(axis=-1)
+
+            self.evaluate_net.fit(screens, q_target, verbose=0)
+
+    # 更新目标网络权重方法
     def update_target_network(self):
         self.target_net.set_weights(self.evaluate_net.get_weights())
 
-    # 保存评估网络权重
+    # 保存评估网络权重方法
     def save_evaluate_network(self):
         self.evaluate_net.save_weights(self.save_path)
