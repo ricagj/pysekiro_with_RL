@@ -33,18 +33,23 @@ def train(
 
     model_weights = 'dl_weights.h5'
 
+    # 读取一个数据集训练，然后再读取下一个数据集训练，以此类推
     for i in range(start, end+1):
 
         filename = f'training_data-{i}.npy'
         data_path = os.path.join('The_battle_memory', target, filename)
 
-        if os.path.exists(data_path):
+        if os.path.exists(data_path):    # 确保数据集存在
+        
+            # 加载数据集
             data = np.load(data_path, allow_pickle=True)
-            print(filename, 'Total data volume：', len(data))
+            print('\n', filename, f'total:{len(data):>5}')
 
+            # 数据集处理成预训练格式
             X = np.array([roi(i[0], x, x_w, y, y_h) for i in data]).reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
             Y = np.array([i[1] for i in data])
 
+            # 训练模型，然后保存
             model.fit(X, Y, batch_size=batch_size, epochs=epochs, verbose=1)
             model.save_weights(model_weights)
         else:
