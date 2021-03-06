@@ -13,11 +13,6 @@ x_w = 290
 y   = 30
 y_h = 230
 
-# 训练评估网络的频率
-update_freq = 50
-# 更新目标网络的频率
-target_network_update_freq = 300
-
 # ---*---
 
 # 离线学习
@@ -30,7 +25,7 @@ def learn_offline(
     ):
 
     sekiro_agent = Sekiro_Agent(
-        model_weights=model_weights,
+        model_weights = model_weights,
         save_path = save_path
     )
 
@@ -69,18 +64,13 @@ def learn_offline(
                     roi(next_screen, x, x_w, y, y_h)
                 )    # 存储经验
 
-                # ---------- train ----------
+                # ---------- learn ----------
                 
-                if step >= sekiro_agent.batch_size:
-                    if step % update_freq == 0:
-                        sekiro_agent.learn()    # 更新评估网络
-                        sekiro_agent.save_evaluate_network()    # 保存网络权重
-                    if step % target_network_update_freq == 0:    # 更新目标网络
-                        print(f'\r step:{step:>5}', end='')
-                        sekiro_agent.update_target_network()
+                sekiro_agent.step = step
+                sekiro_agent.learn()
 
             sekiro_agent.save_evaluate_network()    # 这个数据学习完毕，保存网络权重
-            sekiro_agent.reward_system.save_reward_curve()    # 绘制 reward 曲线并保存在当前目录
+            sekiro_agent.reward_system.save_reward_curve(save_path='learn_offline.png')    # 绘制 reward 曲线并保存在当前目录
             print(f'\r [summary] round:{i:>3}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>}')
 
         else:
