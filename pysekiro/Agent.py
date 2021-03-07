@@ -14,14 +14,14 @@ from pysekiro.model import MODEL
 
 # ---*---
 
-ROI_WIDTH = 100
-ROI_HEIGHT = 200
+ROI_WIDTH   = 200
+ROI_HEIGHT  = 200
 FRAME_COUNT = 1
 
-x=190
-x_w=290
-y=30
-y_h=230
+x   = 140
+x_w = 340
+y   = 30
+y_h = 230
 
 n_action = 5
 
@@ -103,7 +103,7 @@ class Sekiro_Agent:
         n_action = n_action, 
         gamma = 0.99,
         batch_size = 8,
-        replay_memory_size = 50000,
+        replay_memory_size = 20000,
         epsilon = 1.0,
         epsilon_decrease_rate = 0.999,
         update_freq = 50,

@@ -5,14 +5,14 @@ import numpy as np
 from pysekiro.get_vertices import roi
 from pysekiro.model import MODEL
 
-ROI_WIDTH = 100
-ROI_HEIGHT = 200
+ROI_WIDTH   = 200
+ROI_HEIGHT  = 200
 FRAME_COUNT = 1
 
-x=190
-x_w=290
-y=30
-y_h=230
+x   = 140
+x_w = 340
+y   = 30
+y_h = 230
 
 n_action = 5
 
@@ -20,7 +20,7 @@ def train(
     target,
     start=1,
     end=1,
-    batch_size=8,
+    batch_size=128,
     epochs=1,
     model_weights=None
     ):

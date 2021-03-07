@@ -9,8 +9,8 @@ from pysekiro.get_vertices import roi
 
 # ---*---
 
-x   = 190
-x_w = 290
+x   = 140
+x_w = 340
 y   = 30
 y_h = 230
 
@@ -19,13 +19,14 @@ y_h = 230
 # 离线学习
 def learn_offline(
     target,
-    start =1,
-    end = 1,
+    start=1,
+    end=1,
     model_weights=None,
     save_path=None
     ):
 
     sekiro_agent = Sekiro_Agent(
+        batch_size = 128,
         model_weights = model_weights,
         save_path = save_path
     )
