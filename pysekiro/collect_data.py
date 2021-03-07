@@ -4,30 +4,14 @@ import time
 import numpy as np
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
-from pysekiro.Agent import RewardSystem
 from pysekiro.get_keys import key_check
-from pysekiro.get_status import get_status
 from pysekiro.grab_screen import get_screen
-
-# 根据 get_output 函数来定义
-action_map = {
-    0: 'Attack',
-    1: 'Deflect',
-    2: 'Step Dodge',
-    3: 'Jump',
-    4: 'NOKEY',
-    # 5: 'Use Item',
-    # 6: 'Move Forward',
-    # 7: 'Move Back',
-    # 8: 'Move Left',
-    # 9: 'Move Right'
-}
 
 def get_output(keys):    # 对按键信息进行独热编码
 
     output = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    # 攻击、防御、垫步、跳跃和使用道具不能同时进行，但是可以和移动同时进行
+    # 攻击、防御、垫步、跳跃和使用道具不能同时进行（指0.1秒内），但是可以和移动同时进行
     if   'J' in keys:
         output[0] = 1    # 等同于[1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     elif 'K' in keys:
@@ -46,16 +30,12 @@ def get_output(keys):    # 对按键信息进行独热编码
         output[6] = 1    # 等同于[0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
     elif 'S' in keys:
         output[7] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
-    else:
-        output[4] = 1    # 等同于[0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
 
     # 不能同时左右移动
     if   'A' in keys:
         output[8] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
     elif 'D' in keys:
         output[9] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-    else:
-        output[4] = 1    # 等同于[0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
 
     return output
 
@@ -66,8 +46,6 @@ class Data_collection:
         self.save_path = os.path.join('The_battle_memory', self.target)    # 保存的位置
         if not os.path.exists(self.save_path):    # 确保保存的位置存在
             os.mkdir(self.save_path)
-        
-        self.reward_system = RewardSystem()    # 奖惩系统
 
         self.step = 0    # 计步器
 
@@ -83,7 +61,6 @@ class Data_collection:
                 break
             n += 1
         print('Done!')
-        return filename[:-4]
 
     def collect_data(self):
 
@@ -101,23 +78,17 @@ class Data_collection:
                 self.step += 1
 
                 screen = get_screen()    # 获取屏幕图像
-                if not (np.sum(screen == 0) > 5000):    # 正常情况下不会有那么多值为0的像素点，除非黑屏了
+                if not (np.sum(screen == 0) > 32400):    # 270 * 480 / 4 = 32400 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停数据数据
                     action_onehot = get_output(keys)    # 获取按键输出
-                    action = np.argmax(action_onehot[:5])
                     self.dataset.append([screen, action_onehot])    # 图像和输出打包在一起，保证一一对应
 
-                    reward = self.reward_system.get_reward(get_status(screen, show=True))    # 计算 reward
+                # 降低数据采集的频率，两次采集的时间间隔为0.1秒
+                t = 0.1-(time.time()-last_time)
+                if t > 0:
+                    time.sleep(t)
 
-                    # 降低数据采集的频率，两次采集的时间间隔为0.1秒
-                    t = 0.1-(time.time()-last_time)
-                    if t > 0:
-                        time.sleep(t)
-
-                    print(f'\r{" "*100}step:{self.step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[action]:>12}. ', end='')
+                print(f'\rstep:{self.step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds.', end='')
 
                 if 'P' in keys:    # 结束，保存数据
-                    filename = self.save_data()    # 保存数据，保存结束后返回符合条件的文件名
-                    self.reward_system.save_reward_curve(
-                        save_path = os.path.join('Data_quality', self.target, filename+'.png')
-                    )    # 绘制 reward 曲线并保存在当前目录
+                    self.save_data()    # 保存数据
                     break
