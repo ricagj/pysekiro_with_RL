@@ -74,17 +74,17 @@ def Deflect():
 # ---*---
 
 # 根据 collect_data.py 中的 get_output()
-def act(values):
+def act(action):
     
-    if   values == 0:
+    if   action == 0:
         act = Attack     # 攻击
-    elif values == 1:
+    elif action == 1:
         act = Deflect    # 弹反
-    elif values == 2:
+    elif action == 2:
         act = Step_Dodge # 垫步
-    elif values == 3:
+    elif action == 3:
         act = Jump       # 跳跃
-    elif values == 4:
+    elif action == 4:
         act = Move_Forward # 其他（暂时用 移动 前 替代）
 
     act_process = threading.Thread(target=act)
