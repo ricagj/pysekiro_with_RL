@@ -84,9 +84,9 @@ def learn_online(model_weights=None, save_path=None):
             if t > 0:
                 time.sleep(t)
 
-            print(f'\r{" "*52}step:{step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[action]:>10}.', end='')
+            print(f'\r{" "*100}step:{step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[action]:>10}.', end='')
             
-            if 'P' in keys:
+            if 'P' in keys or step == 1000:
                 if train:
                     sekiro_agent.save_evaluate_network()    # 学习完毕，保存网络权重
                 sekiro_agent.reward_system.save_reward_curve(save_path='learn_online.png')    # 绘制 reward 曲线并保存在当前目录
