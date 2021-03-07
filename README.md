@@ -10,7 +10,7 @@
 
 # 快速开始
 
-[快速开始](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/Quick_start.ipynb)  
+[快速开始](https://github.com/ricagj/pysekiro_with_RL/blob/main/Quick_start.ipynb)  
 
 # 说明
 
@@ -20,11 +20,11 @@
 2. 用强化学习从零开始在实战中学习
 3. 用强化学习从已有的数据中学习，再在实战中继续学习
 
-[了解训练是如何进行的](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/How_is_it_trained.ipynb)  
+[了解训练是如何进行的](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_is_it_trained.ipynb)  
 
 # 项目结构
 
-[了解项目各部分是如何工作的](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)  
+[了解项目各部分是如何工作的](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)  
 
 - Data_quality (存放收集数据时记录的reward曲线)
     - Genichiro_Ashina （苇名弦一郎）
