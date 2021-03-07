@@ -1,8 +1,6 @@
 import threading
 import time
 
-import numpy as np
-
 from pysekiro.direct_keys import PressKey, ReleaseKey
 
 # ---*---

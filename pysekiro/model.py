@@ -1,6 +1,10 @@
 import os
 
 import tensorflow as tf
+gpus = tf.config.experimental.list_physical_devices("GPU")
+if gpus:
+    tf.config.experimental.set_memory_growth(gpus[0], True)
+    print(tf.config.experimental.get_device_details(gpus[0])['device_name'])
 
 def identity_block(input_tensor,out_dim):
     conv1 = tf.keras.layers.Conv2D(out_dim // 4, kernel_size=1, padding="SAME", activation=tf.nn.relu)(input_tensor)
