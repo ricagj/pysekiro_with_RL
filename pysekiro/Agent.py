@@ -1,12 +1,9 @@
-from collections import deque
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 import pandas as pd
-
-import tensorflow as tf
 
 from pysekiro.actions import act
 from pysekiro.get_vertices import roi
@@ -106,7 +103,7 @@ class Sekiro_Agent:
         replay_memory_size = 20000,
         epsilon = 1.0,
         epsilon_decrease_rate = 0.999,
-        update_freq = 50,
+        update_freq = 100,
         target_network_update_freq = 300,
         model_weights = None,
         save_path = None
@@ -121,15 +118,13 @@ class Sekiro_Agent:
         self.epsilon = epsilon                                # 探索参数
         self.epsilon_decrease_rate = epsilon_decrease_rate    # 探索衰减率
 
+        self.update_freq = update_freq    # 训练评估网络的频率
+        self.target_network_update_freq = target_network_update_freq    # 更新目标网络的频率
+
         self.model_weights = model_weights    # 指定读取的模型参数的路径
         self.save_path = save_path            # 指定模型权重保存的路径
         if not self.save_path:
             self.save_path = 'tmp_weights.h5'
-
-        gpus = tf.config.experimental.list_physical_devices("GPU")
-        if gpus:
-            tf.config.experimental.set_memory_growth(gpus[0], True)
-            print(tf.config.experimental.get_device_details(gpus[0])['device_name'])
         
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
@@ -137,8 +132,6 @@ class Sekiro_Agent:
         self.replayer = DQNReplayer(self.replay_memory_size)    # 经验回放
 
         self.step = 0    # 计步
-        self.update_freq = update_freq    # 训练评估网络的频率
-        self.target_network_update_freq = target_network_update_freq    # 更新目标网络的频率
 
     # 评估网络和目标网络的构建方法
     def build_network(self):
