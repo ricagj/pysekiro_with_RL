@@ -15,23 +15,47 @@ action_map = {
     1: 'Deflect',
     2: 'Step Dodge',
     3: 'Jump',
-    4: 'O'    # Other
+    4: 'NOKEY',
+    # 5: 'Use Item',
+    # 6: 'Move Forward',
+    # 7: 'Move Back',
+    # 8: 'Move Left',
+    # 9: 'Move Right'
 }
 
 def get_output(keys):    # 对按键信息进行独热编码
 
-    output = [0, 0, 0, 0, 0]
+    output = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+    # 攻击、防御、垫步、跳跃和使用道具不能同时进行，但是可以和移动同时进行
     if   'J' in keys:
-        output[0] = 1    # 等同于[1, 0, 0, 0, 0]
+        output[0] = 1    # 等同于[1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     elif 'K' in keys:
-        output[1] = 1    # 等同于[0, 1, 0, 0, 0]
+        output[1] = 1    # 等同于[0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
     elif 'LSHIFT' in keys:
-        output[2] = 1    # 等同于[0, 0, 1, 0, 0]
+        output[2] = 1    # 等同于[0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
     elif 'SPACE' in keys:
-        output[3] = 1    # 等同于[0, 0, 0, 1, 0]
+        output[3] = 1    # 等同于[0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+    elif 'R' in keys:
+        output[5] = 1    # 等同于[0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
     else:
-        output[4] = 1    # 等同于[0, 0, 0, 0, 1]
+        output[4] = 1    # 等同于[0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
+
+    # 不能同时前后移动
+    if   'W' in keys:
+        output[6] = 1    # 等同于[0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+    elif 'S' in keys:
+        output[7] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
+    else:
+        output[4] = 1    # 等同于[0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
+
+    # 不能同时左右移动
+    if   'A' in keys:
+        output[8] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+    elif 'D' in keys:
+        output[9] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+    else:
+        output[4] = 1    # 等同于[0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
 
     return output
 
@@ -79,7 +103,7 @@ class Data_collection:
                 screen = get_screen()    # 获取屏幕图像
                 if not (np.sum(screen == 0) > 5000):    # 正常情况下不会有那么多值为0的像素点，除非黑屏了
                     action_onehot = get_output(keys)    # 获取按键输出
-                    action = np.argmax(action_onehot)
+                    action = np.argmax(action_onehot[:5])
                     self.dataset.append([screen, action_onehot])    # 图像和输出打包在一起，保证一一对应
 
                     reward = self.reward_system.get_reward(get_status(screen, show=True))    # 计算 reward
@@ -89,7 +113,7 @@ class Data_collection:
                     if t > 0:
                         time.sleep(t)
 
-                    print(f'\r{" "*100}step:{self.step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[action]:>10}. ', end='')
+                    print(f'\r{" "*100}step:{self.step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[action]:>12}. ', end='')
 
                 if 'P' in keys:    # 结束，保存数据
                     filename = self.save_data()    # 保存数据，保存结束后返回符合条件的文件名

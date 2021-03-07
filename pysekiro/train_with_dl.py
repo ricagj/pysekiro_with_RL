@@ -47,7 +47,7 @@ def train(
 
             # 数据集处理成预训练格式
             X = np.array([roi(i[0], x, x_w, y, y_h) for i in data]).reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
-            Y = np.array([i[1] for i in data])
+            Y = np.array([i[1][:5] for i in data])
 
             # 训练模型，然后保存
             model.fit(X, Y, batch_size=batch_size, epochs=epochs, verbose=1)
