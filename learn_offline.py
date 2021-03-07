@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 from pysekiro.Agent import Sekiro_Agent
 from pysekiro.get_status import get_status
@@ -45,21 +46,17 @@ def learn_offline(
 
                 # ---------- (S, A, R, S') ----------
                 
-                # 读取 状态S、动作A 和 新状态S'
-                screen = data[step][0]           # 状态S
-                action = data[step][1]           # 动作A
-                next_screen = data[step+1][0]    # 新状态S'
-
-                # 获取 奖励R
-                status = get_status(screen)
-                reward = sekiro_agent.reward_system.get_reward(status)    # 奖励R
+                screen = data[step][0]               # 状态S
+                action = np.argmax(data[step][1])    # 动作A
+                reward = sekiro_agent.reward_system.get_reward(get_status(screen))    # 奖励R
+                next_screen = data[step+1][0]        # 新状态S'
 
                 # ---------- store ----------
                 
                 # 集齐 (S, A, R, S')，开始存储
                 sekiro_agent.replayer.store(
                     roi(screen, x, x_w, y, y_h),
-                    np.argmax(action),
+                    action,
                     reward,
                     roi(next_screen, x, x_w, y, y_h)
                 )    # 存储经验

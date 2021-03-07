@@ -2,6 +2,7 @@ import time
 
 import cv2
 import numpy as np
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 from pysekiro.Agent import Sekiro_Agent
 from pysekiro.collect_data import action_map
@@ -52,14 +53,8 @@ def learn_online(model_weights=None, save_path=None):
 
             # ---------- (S, A, R, S') ----------
 
-            # 选取动作，同时执行动作
             action = sekiro_agent.choose_action(screen, train)    # 动作A
-
-            # 获取 奖励R
-            status = get_status(screen)
-            Self_HP, Self_Posture, Target_HP, Target_Posture = status
-            reward = sekiro_agent.reward_system.get_reward(status)    # 奖励R
-
+            reward = sekiro_agent.reward_system.get_reward(get_status(screen, show=True))    # 奖励R
             next_screen = get_screen()    # 新状态S'
 
             # ---------- 下一个轮回 ----------
@@ -74,7 +69,7 @@ def learn_online(model_weights=None, save_path=None):
                     # 集齐 (S, A, R, S')，开始存储
                     sekiro_agent.replayer.store(
                         roi(screen, x, x_w, y, y_h),
-                        np.argmax(action),
+                        action,
                         reward,
                         roi(next_screen, x, x_w, y, y_h)
                     )    # 存储经验
@@ -89,9 +84,7 @@ def learn_online(model_weights=None, save_path=None):
             if t > 0:
                 time.sleep(t)
 
-            print(f'\rstep:{step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. \
-                action: {action_map[np.argmax(action)]:>10}. \
-                Self HP: {Self_HP:>3}, Self Posture: {Self_Posture:>3}, Target HP: {Target_HP:>3}, Target Posture: {Target_Posture:>3}', end='')
+            print(f'\r{" "*52}step:{step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[action]:>10}.', end='')
             
             if 'P' in keys:
                 if train:

@@ -3,6 +3,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 import pandas as pd
 
 import tensorflow as tf
@@ -26,6 +27,15 @@ n_action = 5
 
 # ---*---
 
+# 约束状态值的上下限，防止波动过大影响训练，也防止异常值和特殊值的影响。
+def limit(value, lm):
+    if value > lm:
+        return lm
+    elif value < -lm:
+        return -lm
+    else:
+        return value
+
 class RewardSystem:
     def __init__(self):
         self.past_status = [152, 0, 100, 0]
@@ -39,11 +49,11 @@ class RewardSystem:
 
             self.status = status
 
-            # 每个状态的计算方法：(保留两位小数(现在的状态 - 过去的状态)) * 正负强化权重
-            s1 = round(self.status[0] - self.past_status[0], 2) *  1    # 自身生命
-            s2 = round(self.status[1] - self.past_status[1], 2) * -1    # 自身架势
-            t1 = round(self.status[2] - self.past_status[2], 2) * -1    # 目标生命
-            t2 = round(self.status[3] - self.past_status[3], 2) *  1    # 目标架势
+            # 每个状态的计算方法：(现在的状态 - 过去的状态) * 正负强化权重，然后约束上下限
+            s1 = limit((self.status[0] - self.past_status[0]) *  1, 30)    # 自身生命
+            s2 = limit((self.status[1] - self.past_status[1]) * -1, 10)    # 自身架势
+            t1 = limit((self.status[2] - self.past_status[2]) * -1, 20)    # 目标生命
+            t2 = limit((self.status[3] - self.past_status[3]) *  1, 10)    # 目标架势
 
             reward = 0.2 * (s1 + t1) + 0.8 * (s2 + t2)
             # print(f'  s1:{s1:>4}, s2:{s2:>4}, t1:{t1:>4}, t2:{t2:>4}, reward:{reward:>4}')
@@ -120,6 +130,7 @@ class Sekiro_Agent:
         if gpus:
             tf.config.experimental.set_memory_growth(gpus[0], True)
             print(tf.config.experimental.get_device_details(gpus[0])['device_name'])
+        
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
         self.reward_system = RewardSystem()                     # 奖惩系统
@@ -147,20 +158,20 @@ class Sekiro_Agent:
         # train = True 开启探索模式
         if r < self.epsilon:
             self.epsilon *= self.epsilon_decrease_rate    # 逐渐减小探索参数, 降低行为的随机性
-            q_values = np.random.randint(self.n_action)
+            action = np.random.randint(self.n_action)
         
         # train = False 直接进入这里
         else:
             screen = roi(screen, x, x_w, y, y_h)
             q_values = self.evaluate_net.predict([screen.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)])[0]
-            q_values = np.argmax(q_values)
+            action = np.argmax(q_values)
         
         # 执行动作
-        act(q_values)
+        act(action)
         
-        return q_values
+        return action
 
-    # 行为选择与执行方法
+    # 学习方法
     def learn(self):
 
         if self.step >= self.batch_size and self.step % self.update_freq == 0:    # 更新评估网络
