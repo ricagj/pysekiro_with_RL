@@ -89,7 +89,7 @@ class Data_collection:
                     if t > 0:
                         time.sleep(t)
 
-                    print(f'\r{" "*52}step:{self.step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[action]:>10}. ', end='')
+                    print(f'\r{" "*100}step:{self.step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action: {action_map[action]:>10}. ', end='')
 
                 if 'P' in keys:    # 结束，保存数据
                     filename = self.save_data()    # 保存数据，保存结束后返回符合条件的文件名
