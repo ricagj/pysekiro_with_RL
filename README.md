@@ -24,7 +24,7 @@ https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow/tree/master
 
 [快速开始](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/Quick_start.ipynb)  
 
-[了解训练是如何进行的](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_is_it_trained.ipynb)  
+[了解训练是如何进行的](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/How_is_it_trained.ipynb)  
 
 [了解项目各部分是如何工作的](https://nbviewer.jupyter.org/github/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)  
 

@@ -19,8 +19,8 @@ def get_value(target_img):
 
 def get_Self_HP(img):
     img_roi = roi(img, x=29, x_w=182, y=246, y_h=246+1)[0]    # 获取自 get_vertices.py
-    retval, img_th = cv2.threshold(img_roi, 60, 255, cv2.THRESH_TOZERO)    # 低于60的像素点的值设置为0
-    retval, img_th = cv2.threshold(img_th, 80, 255, cv2.cv2.THRESH_TOZERO_INV)    # 高于80的像素点的值设置为0
+    retval, img_th = cv2.threshold(img_roi, 60, 255, cv2.THRESH_TOZERO)           # 图像阈值处理，像素点的值低于60的设置为0
+    retval, img_th = cv2.threshold(img_th, 80, 255, cv2.cv2.THRESH_TOZERO_INV)    # 图像阈值处理，像素点的值高于80的设置为0
     img_th = np.reshape(img_th, (img_roi.shape))
     Self_HP = get_value(img_th)    # 获取数值
 #     print('\n', img_th)
@@ -29,7 +29,7 @@ def get_Self_HP(img):
 
 def get_Self_Posture(img):
     img_roi = roi(img, x=240, x_w=290, y=234, y_h=234+1)[0]    # 获取自 get_vertices.py
-    retval, img_th = cv2.threshold(img_roi, 100, 255, cv2.THRESH_TOZERO)    # 低于100的像素点的值设置为0
+    retval, img_th = cv2.threshold(img_roi, 100, 255, cv2.THRESH_TOZERO)    # 图像阈值处理，像素点的值低于100的设置为0
     img_th = np.reshape(img_th, (img_roi.shape))
     
     if int(img_th[0]) - int(img_th[1]) > 15:    # 开启条件
@@ -47,10 +47,12 @@ def get_Self_Posture(img):
 #     print(Self_Posture)
     return Self_Posture
 
+# ---*---
+
 def get_Target_HP(img):
     img_roi = roi(img, x=29, x_w=130, y=25, y_h=25+1)[0]    # 获取自 get_vertices.py
-    retval, img_th = cv2.threshold(img_roi, 40, 255, cv2.THRESH_TOZERO)    # 低于40的像素点的值设置为0
-    retval, img_th = cv2.threshold(img_th, 80, 255, cv2.cv2.THRESH_TOZERO_INV)    # 高于80的像素点的值设置为0
+    retval, img_th = cv2.threshold(img_roi, 40, 255, cv2.THRESH_TOZERO)           # 图像阈值处理，像素点的值低于40的设置为0
+    retval, img_th = cv2.threshold(img_th, 80, 255, cv2.cv2.THRESH_TOZERO_INV)    # 图像阈值处理，像素点的值高于80的设置为0
     img_th = np.reshape(img_th, (img_roi.shape))
     Target_HP = get_value(img_th)    # 获取数值
 #     print('\n', img_th)
@@ -59,7 +61,7 @@ def get_Target_HP(img):
 
 def get_Target_Posture(img):
     img_roi = roi(img, x=240, x_w=327, y=17, y_h=17+1)[0]    # 获取自 get_vertices.py
-    retval, img_th = cv2.threshold(img_roi, 100, 255, cv2.THRESH_TOZERO)    # 低于100的像素点的值设置为0
+    retval, img_th = cv2.threshold(img_roi, 100, 255, cv2.THRESH_TOZERO)    # 图像阈值处理，像素点的值低于100的设置为0
     img_th = np.reshape(img_th, (img_roi.shape))
     
     if int(img_th[0]) - int(img_th[1]) > 15:    # 开启条件
@@ -79,5 +81,8 @@ def get_Target_Posture(img):
 
 # ---*---
 
-def get_status(img):
-    return [get_Self_HP(img), get_Self_Posture(img), get_Target_HP(img), get_Target_Posture(img)]
+def get_status(img, show=False):
+    Self_HP, Self_Posture, Target_HP, Target_Posture = get_Self_HP(img), get_Self_Posture(img), get_Target_HP(img), get_Target_Posture(img)
+    if show:
+        print(f'\rSelf HP: {Self_HP:>3}, Self Posture: {Self_Posture:>3}, Target HP: {Target_HP:>3}, Target Posture: {Target_Posture:>3}. ', end='')
+    return Self_HP, Self_Posture, Target_HP, Target_Posture
