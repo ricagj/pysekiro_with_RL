@@ -35,7 +35,7 @@ def grab_screen(region=None):
     win32gui.ReleaseDC(hwin, hwindc)
     win32gui.DeleteObject(bmp.GetHandle())
 
-    return cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
+    return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
 # ---*---
 
@@ -46,8 +46,6 @@ GAME_HEIGHT = 720
 # 标准窗口大小
 STANDARD_WIDTH = 480
 STANDARD_HEIGHT = 270
-
-FRAME_COUNT = 1
 
 def get_screen():
     # 屏幕捕获，并图像缩放

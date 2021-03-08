@@ -18,62 +18,58 @@ def get_value(target_img):
 # ---*---
 
 def get_Self_HP(img):
-    img_roi = roi(img, x=29, x_w=182, y=246, y_h=246+1)[0]    # 获取自 get_vertices.py
-    retval, img_th = cv2.threshold(img_roi, 60, 255, cv2.THRESH_TOZERO)           # 图像阈值处理，像素点的值低于60的设置为0
-    retval, img_th = cv2.threshold(img_th, 80, 255, cv2.cv2.THRESH_TOZERO_INV)    # 图像阈值处理，像素点的值高于80的设置为0
-    img_th = np.reshape(img_th, (img_roi.shape))
+    img_roi = roi(img, x=29, x_w=182, y=246, y_h=246+1)    # x, x_w, y, y_h 获取自 get_vertices.py
+    b, g ,r =cv2.split(img_roi)    # 颜色通道分离
+    r = r[0]
+    retval, img_th = cv2.threshold(r, 100, 255, cv2.THRESH_TOZERO)           # 图像阈值处理，像素点的值低于100的设置为0
+    img_th = np.reshape(img_th, r.shape)
     Self_HP = get_value(img_th)    # 获取数值
-#     print('\n', img_th)
-#     print(Self_HP)
+    # print('\n', img_th)
+    # print(Self_HP)
     return Self_HP
 
 def get_Self_Posture(img):
-    img_roi = roi(img, x=240, x_w=290, y=234, y_h=234+1)[0]    # 获取自 get_vertices.py
-    retval, img_th = cv2.threshold(img_roi, 100, 255, cv2.THRESH_TOZERO)    # 图像阈值处理，像素点的值低于100的设置为0
-    img_th = np.reshape(img_th, (img_roi.shape))
-    
-    if int(img_th[0]) - int(img_th[1]) > 15:    # 开启条件
-        if img_th[1] in range(100, 125) and img_th[0] in range(145, 165):
-            Self_Posture = get_value(img_th)
-        elif img_th[1] in range(135, 160) and img_th[0] in range(180, 220):
-            Self_Posture = get_value(img_th)
-        elif img_th[1] in range(160, 230) and img_th[0] in range(200, 250):
-            Self_Posture = get_value(img_th)
-        else:
-            Self_Posture = 0
+    img_roi = roi(img, x=240, x_w=290, y=234, y_h=234+1)    # x, x_w, y, y_h 获取自 get_vertices.py
+    b, g ,r =cv2.split(img_roi)    # 颜色通道分离
+    r = r[0]
+    if 150 < r[0] < 165:    # 开启条件1
+        retval, img_th = cv2.threshold(r, 130, 255, cv2.THRESH_TOZERO)    # 图像阈值处理，像素点的值低于130的设置为0
+        img_th = np.reshape(img_th, r.shape)
+        Self_Posture = get_value(img_th)
+    elif r[0] > 200:    # 开启条件2
+        retval, img_th = cv2.threshold(r, 200, 255, cv2.THRESH_TOZERO)    # 图像阈值处理，像素点的值低于200的设置为0
+        img_th = np.reshape(img_th, r.shape)
+        Self_Posture = get_value(img_th)
     else:
+        img_th = None
         Self_Posture = 0
-#     print('\n', img_th)
-#     print(Self_Posture)
+    # print('\n', img_th)
+    # print(Self_Posture)
     return Self_Posture
 
 # ---*---
 
 def get_Target_HP(img):
-    img_roi = roi(img, x=29, x_w=130, y=25, y_h=25+1)[0]    # 获取自 get_vertices.py
-    retval, img_th = cv2.threshold(img_roi, 40, 255, cv2.THRESH_TOZERO)           # 图像阈值处理，像素点的值低于40的设置为0
-    retval, img_th = cv2.threshold(img_th, 80, 255, cv2.cv2.THRESH_TOZERO_INV)    # 图像阈值处理，像素点的值高于80的设置为0
-    img_th = np.reshape(img_th, (img_roi.shape))
+    img_roi = roi(img, x=29, x_w=130, y=25, y_h=25+1)    # x, x_w, y, y_h 获取自 get_vertices.py
+    b, g ,r =cv2.split(img_roi)    # 颜色通道分离
+    r = r[0]
+    retval, img_th = cv2.threshold(r, 80, 255, cv2.THRESH_TOZERO)           # 图像阈值处理，像素点的值低于80的设置为0
+    img_th = np.reshape(img_th, r.shape)
     Target_HP = get_value(img_th)    # 获取数值
 #     print('\n', img_th)
 #     print(Target_HP)
     return Target_HP
 
 def get_Target_Posture(img):
-    img_roi = roi(img, x=240, x_w=327, y=17, y_h=17+1)[0]    # 获取自 get_vertices.py
-    retval, img_th = cv2.threshold(img_roi, 100, 255, cv2.THRESH_TOZERO)    # 图像阈值处理，像素点的值低于100的设置为0
-    img_th = np.reshape(img_th, (img_roi.shape))
-    
-    if int(img_th[0]) - int(img_th[1]) > 15:    # 开启条件
-        if img_th[1] in range(100, 125) and img_th[0] in range(175, 230):
-            Target_Posture = get_value(img_th)
-        elif img_th[1] in range(150, 190) and img_th[0] in range(220, 250):
-            Target_Posture = get_value(img_th)
-        elif img_th[1] in range(190, 220) and img_th[0] in range(230, 260):
-            Target_Posture = get_value(img_th)
-        else:
-            Target_Posture = 0
+    img_roi = roi(img, x=240, x_w=327, y=17, y_h=17+1)    # x, x_w, y, y_h 获取自 get_vertices.py
+    b, g ,r =cv2.split(img_roi)    # 颜色通道分离
+    r = r[0]
+    if r[0] > 180:    # 开启条件1
+        retval, img_th = cv2.threshold(r, 140, 255, cv2.THRESH_TOZERO)    # 图像阈值处理，像素点的值低于140的设置为0
+        img_th = np.reshape(img_th, r.shape)
+        Target_Posture = get_value(img_th)
     else:
+        img_th = None
         Target_Posture = 0
     # print('\n', img_th)
     # print(Target_Posture)
