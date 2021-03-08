@@ -22,6 +22,7 @@ def get_output(keys):    # 对按键信息进行独热编码
         output[3] = 1    # 等同于[0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
     elif 'R' in keys:
         output[5] = 1    # 等同于[0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+        output[4] = 1
     else:
         output[4] = 1    # 等同于[0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
 
@@ -78,7 +79,7 @@ class Data_collection:
                 self.step += 1
 
                 screen = get_screen()    # 获取屏幕图像
-                if not (np.sum(screen == 0) > 97200):    # 270 * 480 * 3 / 4 = 97200 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停数据数据
+                if not (np.sum(screen == 0) > 97200):    # 270 * 480 * 3 / 4 = 97200 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停收集数据
                     action_onehot = get_output(keys)    # 获取按键输出
                     self.dataset.append([screen, action_onehot])    # 图像和输出打包在一起，保证一一对应
 

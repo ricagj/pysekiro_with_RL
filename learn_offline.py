@@ -51,7 +51,7 @@ def learn_offline(
                 # ---------- (S, A, R, S') ----------
                 
                 screen = data[step][0]               # 状态S
-                action = np.argmax(data[step][1])    # 动作A
+                action = np.argmax(data[step][1][:5])    # 动作A
                 reward = sekiro_agent.reward_system.get_reward(get_status(screen))    # 奖励R
                 next_screen = data[step+1][0]        # 新状态S'
 

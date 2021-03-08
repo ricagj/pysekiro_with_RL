@@ -6,7 +6,7 @@
     <a>中文</a>
 </p>
 
-![demo.png](https://github.com/ricagj/pysekiro_with_RL/blob/main/imgs/demo.png?raw=true)
+![demo.png](https://github.com/ricagj/pysekiro/blob/main/imgs/demo.png?raw=true)
 
 # 快速开始
 

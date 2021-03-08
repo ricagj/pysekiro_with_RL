@@ -35,7 +35,6 @@ def MODEL(width, height, frame_count, outputs, model_weights=None):
         identity_2 = identity_block(identity_2,out_dim)
 
     flat = tf.keras.layers.Flatten()(identity_2)
-    flat = tf.keras.layers.Dropout(0.5)(flat)
     dense = tf.keras.layers.Dense(16,activation=tf.nn.relu)(flat)
     dense = tf.keras.layers.BatchNormalization()(dense)
 
