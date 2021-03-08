@@ -78,7 +78,7 @@ class Data_collection:
                 self.step += 1
 
                 screen = get_screen()    # 获取屏幕图像
-                if not (np.sum(screen == 0) > 32400):    # 270 * 480 / 4 = 32400 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停数据数据
+                if not (np.sum(screen == 0) > 97200):    # 270 * 480 * 3 / 4 = 97200 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停数据数据
                     action_onehot = get_output(keys)    # 获取按键输出
                     self.dataset.append([screen, action_onehot])    # 图像和输出打包在一起，保证一一对应
 
