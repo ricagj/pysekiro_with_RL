@@ -1,5 +1,6 @@
 import os
 
+import cv2
 import numpy as np
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
@@ -8,6 +9,9 @@ from pysekiro.get_status import get_status
 from pysekiro.get_vertices import roi
 
 # ---*---
+
+ROI_WIDTH   = 50
+ROI_HEIGHT  = 50
 
 x   = 140
 x_w = 340
@@ -26,7 +30,6 @@ def learn_offline(
     ):
 
     sekiro_agent = Sekiro_Agent(
-        batch_size = 128,
         model_weights = model_weights,
         save_path = save_path
     )
@@ -56,10 +59,10 @@ def learn_offline(
                 
                 # 集齐 (S, A, R, S')，开始存储
                 sekiro_agent.replayer.store(
-                    roi(screen, x, x_w, y, y_h),
+                    cv2.resize(roi(screen, x, x_w, y, y_h), (ROI_WIDTH, ROI_HEIGHT)),    # 截取感兴趣区域并图像缩放
                     action,
                     reward,
-                    roi(next_screen, x, x_w, y, y_h)
+                    cv2.resize(roi(next_screen, x, x_w, y, y_h), (ROI_WIDTH, ROI_HEIGHT))    # 截取感兴趣区域并图像缩放
                 )    # 存储经验
 
                 # ---------- learn ----------
@@ -68,7 +71,9 @@ def learn_offline(
                 sekiro_agent.learn()
 
             sekiro_agent.save_evaluate_network()    # 这个数据学习完毕，保存网络权重
-            sekiro_agent.reward_system.save_reward_curve(save_path='learn_offline.png')    # 绘制 reward 曲线并保存在当前目录
+            sekiro_agent.reward_system.save_reward_curve(
+                save_path = os.path.join('Data_quality', target, filename[:-4]+'.png')
+            )    # 绘制 reward 曲线并保存
             print(f'\r [summary] round:{i:>3}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>}')
 
         else:
