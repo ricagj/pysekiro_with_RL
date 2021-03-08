@@ -1,13 +1,14 @@
 import os
 
+import cv2
 import numpy as np
 
 from pysekiro.get_vertices import roi
 from pysekiro.model import MODEL
 
-ROI_WIDTH   = 200
-ROI_HEIGHT  = 200
-FRAME_COUNT = 1
+ROI_WIDTH   = 50
+ROI_HEIGHT  = 50
+FRAME_COUNT = 3
 
 x   = 140
 x_w = 340
@@ -46,7 +47,7 @@ def train(
             print('\n', filename, f'total:{len(data):>5}')
 
             # 数据集处理成预训练格式
-            X = np.array([roi(i[0], x, x_w, y, y_h) for i in data]).reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
+            X = np.array([cv2.resize(roi(i[0], x, x_w, y, y_h), (ROI_WIDTH, ROI_HEIGHT)) for i in data]).reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
             Y = np.array([i[1][:5] for i in data])
 
             # 训练模型，然后保存

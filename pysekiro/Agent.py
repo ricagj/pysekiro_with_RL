@@ -1,5 +1,6 @@
 import os
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -11,9 +12,9 @@ from pysekiro.model import MODEL
 
 # ---*---
 
-ROI_WIDTH   = 200
-ROI_HEIGHT  = 200
-FRAME_COUNT = 1
+ROI_WIDTH   = 50
+ROI_HEIGHT  = 50
+FRAME_COUNT = 3
 
 x   = 140
 x_w = 340
@@ -24,14 +25,19 @@ n_action = 5
 
 # ---*---
 
-# 约束状态值的上下限，防止波动过大影响训练，也防止异常值和特殊值的影响。
-def limit(value, lm):
-    if value > lm:
-        return lm
-    elif value < -lm:
-        return -lm
+# 约束状态值的上下限，防止异常值和特殊值的影响。
+def limit(value, lm1, lm2):
+
+    if value < lm1:
+        return lm1
+    elif value > lm2:
+        return lm2
     else:
         return value
+
+# one_hot = lambda x:[(1 if i == x else 0) for i in range(n_action)]
+
+# ---*---
 
 class RewardSystem:
     def __init__(self):
@@ -47,10 +53,10 @@ class RewardSystem:
             self.status = status
 
             # 每个状态的计算方法：(现在的状态 - 过去的状态) * 正负强化权重，然后约束上下限
-            s1 = limit((self.status[0] - self.past_status[0]) *  1, 30)    # 自身生命
-            s2 = limit((self.status[1] - self.past_status[1]) * -1, 10)    # 自身架势
-            t1 = limit((self.status[2] - self.past_status[2]) * -1, 20)    # 目标生命
-            t2 = limit((self.status[3] - self.past_status[3]) *  1, 10)    # 目标架势
+            s1 = limit((self.status[0] - self.past_status[0]) *  1, -152, +76)    # 自身生命
+            s2 = limit((self.status[1] - self.past_status[1]) * -1, -10, +10)    # 自身架势
+            t1 = limit((self.status[2] - self.past_status[2]) * -1, -20,   0)    # 目标生命
+            t2 = limit((self.status[3] - self.past_status[3]) *  1, -10, +10)    # 目标架势
 
             reward = 0.2 * (s1 + t1) + 0.8 * (s2 + t2)
             # print(f'  s1:{s1:>4}, s2:{s2:>4}, t1:{t1:>4}, t2:{t2:>4}, reward:{reward:>4}')
@@ -99,7 +105,7 @@ class Sekiro_Agent:
         self,
         n_action = n_action, 
         gamma = 0.99,
-        batch_size = 8,
+        batch_size = 128,
         replay_memory_size = 20000,
         epsilon = 1.0,
         epsilon_decrease_rate = 0.999,
@@ -155,8 +161,8 @@ class Sekiro_Agent:
         
         # train = False 直接进入这里
         else:
-            screen = roi(screen, x, x_w, y, y_h)
-            q_values = self.evaluate_net.predict([screen.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)])[0]
+            screen = cv2.resize(roi(screen, x, x_w, y, y_h), (ROI_WIDTH, ROI_HEIGHT)).reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
+            q_values = self.evaluate_net.predict(screen)[0]
             action = np.argmax(q_values)
         
         # 执行动作
