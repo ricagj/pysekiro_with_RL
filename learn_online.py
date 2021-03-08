@@ -1,5 +1,6 @@
 import time
 
+import cv2
 import numpy as np
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
@@ -10,6 +11,9 @@ from pysekiro.get_vertices import roi
 from pysekiro.grab_screen import get_screen
 
 # ---*---
+
+ROI_WIDTH   = 50
+ROI_HEIGHT  = 50
 
 x   = 140
 x_w = 340
@@ -60,16 +64,16 @@ def learn_online(model_weights=None, save_path=None):
             screen = next_screen    # 状态S
 
             if train:
-                if not (np.sum(screen == 0) > 32400):    # 270 * 480 / 4 = 32400 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停存储数据
+                if not (np.sum(screen == 0) > 97200):    # 270 * 480 * 3 / 4 = 97200 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停存储数据
 
                     # ---------- store ----------
 
                     # 集齐 (S, A, R, S')，开始存储
                     sekiro_agent.replayer.store(
-                        roi(screen, x, x_w, y, y_h),
+                        cv2.resize(roi(screen, x, x_w, y, y_h), (ROI_WIDTH, ROI_HEIGHT)),    # 截取感兴趣区域并图像缩放
                         action,
                         reward,
-                        roi(next_screen, x, x_w, y, y_h)
+                        cv2.resize(roi(next_screen, x, x_w, y, y_h), (ROI_WIDTH, ROI_HEIGHT))    # 截取感兴趣区域并图像缩放
                     )    # 存储经验
 
                     # ---------- learn ----------
