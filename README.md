@@ -1,4 +1,4 @@
-## 用强化学习玩《只狼：影逝二度》
+# 在《只狼：影逝二度》中用深度强化学习训练Agent
 
 <p align="center">
     <a href="https://github.com/ricagj/pysekiro_with_RL/blob/main/README_EN.md">English</a>
@@ -8,21 +8,12 @@
 
 ![demo.png](https://github.com/ricagj/pysekiro/blob/main/imgs/demo.png?raw=true)
 
-# 快速开始
+## 快速开始
 
 [快速开始](https://github.com/ricagj/pysekiro_with_RL/blob/main/Quick_start.ipynb)  
-
-# 说明
-
-#### 本项目将从三个角度来训练**智能体**
-
-1. 用深度学习从已有的数据中学习
-2. 用强化学习从零开始在实战中学习
-3. 用强化学习从已有的数据中学习，再在实战中继续学习
-
 [了解训练是如何进行的](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_is_it_trained.ipynb)  
 
-# 项目结构
+## 项目结构
 
 [了解项目各部分是如何工作的](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)  
 
@@ -56,7 +47,7 @@
 - learn_offline.py (离线学习)
 - learn_online.py (在线学习\测试模型)
 
-# 准备
+## 准备
 
 #### 安装 Anaconda3
 
@@ -75,7 +66,7 @@ pip install tensorflow>=2.0
 conda install -c conda-forge jupyterlab
 ~~~
 
-# 参考
+## 参考
 https://github.com/Sentdex/pygta5  
 https://github.com/analoganddigital/sekiro_tensorflow  
 https://github.com/analoganddigital/DQN_play_sekiro  
