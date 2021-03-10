@@ -1,4 +1,5 @@
 import os
+import re
 
 import cv2
 import matplotlib.pyplot as plt
@@ -7,13 +8,14 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 import pandas as pd
 
 from pysekiro.actions import act
+from pysekiro.get_status import get_status
 from pysekiro.get_vertices import roi
 from pysekiro.model import MODEL
 
 # ---*---
 
-ROI_WIDTH   = 50
-ROI_HEIGHT  = 50
+ROI_WIDTH   = 100
+ROI_HEIGHT  = 100
 FRAME_COUNT = 3
 
 x   = 140
@@ -35,39 +37,39 @@ def limit(value, lm1, lm2):
     else:
         return value
 
-# one_hot = lambda x:[(1 if i == x else 0) for i in range(n_action)]
-
 # ---*---
 
 class RewardSystem:
     def __init__(self):
-        self.past_status = [152, 0, 100, 0]
+        self.cur_status = [152, 0, 100, 0]
 
-        # 记录积累reward过程
-        self.current_cumulative_reward = 0
-        self.reward_history = list()
+        self.current_cumulative_reward = 0    # 当前积累的 reward
+        self.reward_history = list()    # reward 的积累过程
 
-    def get_reward(self, status):
+    def get_reward(self, next_status):
         if sum(status) != 0:
 
-            self.status = status
+            self.next_status = next_status
 
-            # 每个状态的计算方法：(现在的状态 - 过去的状态) * 正负强化权重，然后约束上下限
-            s1 = limit((self.status[0] - self.past_status[0]) *  1, -152, +76)    # 自身生命
-            s2 = limit((self.status[1] - self.past_status[1]) * -1, -10, +10)    # 自身架势
-            t1 = limit((self.status[2] - self.past_status[2]) * -1, -20,   0)    # 目标生命
-            t2 = limit((self.status[3] - self.past_status[3]) *  1, -10, +10)    # 目标架势
+            # 自身状态的计算方法：(下一个的状态 - 当前的状态) * 正负强化权重
+            s1 = (self.next_status[0] - self.cur_status[0]) *  1    # 自身生命
+            s2 = (self.next_status[1] - self.cur_status[1]) * -1    # 自身架势
 
-            reward = 0.2 * (s1 + t1) + 0.8 * (s2 + t2)
-            # print(f'  s1:{s1:>4}, s2:{s2:>4}, t1:{t1:>4}, t2:{t2:>4}, reward:{reward:>4}')
+            # 目标状态的计算方法：约束上下限(下一个的状态 - 当前的状态) * 正负强化权重
+            t1 = limit((self.next_status[2] - self.cur_status[2]), -100,   0) * -1    # 目标生命
+            t2 = limit((self.next_status[3] - self.cur_status[3]),  -20, +20) *  1    # 目标架势
 
-            self.past_status = self.status
+            # 分开生命值和架势并赋予这样的权重是为了降低生命值状态变化的影响
+            reward = 0.1 * (s1 + t1) + 0.9 * (s2 + t2)
+            # print(f'\t s1:{s1:>4}, s2:{s2:>4}, t1:{t1:>4}, t2:{t2:>4}, reward:{reward:>4}')
 
-            self.current_cumulative_reward += reward
-            self.reward_history.append(self.current_cumulative_reward)
+            self.cur_status = self.next_status
         else:
             reward = 0
-
+        
+        self.current_cumulative_reward += reward
+        self.reward_history.append(self.current_cumulative_reward)
+        
         return reward
 
     def save_reward_curve(self, save_path='reward.png'):
@@ -76,6 +78,39 @@ class RewardSystem:
         plt.ylabel('reward')
         plt.xlabel('training steps')
         plt.savefig(save_path)
+        plt.show()
+
+def get_data_quality():
+    
+    reward_system = RewardSystem()
+    
+    path1 = 'The_battle_memory'
+    path2 = 'Data_quality'
+    
+    for target in os.listdir(path1):
+        save_dir = os.path.join(path2, target)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        data_list = os.listdir(os.path.join(path1, target))
+
+        m = max([int(re.findall('\d+', x)[0]) for x in data_list])
+        for i in range(1, m+1):
+            filename = f'training_data-{i}.npy'
+            data_path = os.path.join(path1, target, filename)
+
+            if os.path.exists(data_path):
+                dataset = np.load(data_path, allow_pickle=True)
+
+                reward_system.cur_status = get_status(dataset[0][0])
+                for step in range(1, len(dataset)):
+                    reward_system.get_reward(get_status(dataset[step][0]))
+                reward_system.save_reward_curve(save_path=os.path.join(path2, target, filename[:-4]+'.png'))
+                
+                reward_system.current_cumulative_reward = 0
+                reward_system.reward_history = list()
+                print(data_path, 'done')
+            else:
+                print(f'{filename} does not exist ')
 
 # ---*---
 
@@ -176,7 +211,7 @@ class Sekiro_Agent:
         if self.step >= self.batch_size and self.step % self.update_freq == 0:    # 更新评估网络
 
             if self.step % self.target_network_update_freq == 0:    # 更新目标网络
-                print(f'\n step:{self.step:>4}, current_cumulative_reward:{self.reward_system.current_cumulative_reward:>5.3f}, memory:{self.replayer.count:7>} \n')
+                print(f'step:{self.step:>4}, current_cumulative_reward:{self.reward_system.current_cumulative_reward:>5.3f}, memory:{self.replayer.count:7>}')
                 self.update_target_network() 
 
             # 经验回放

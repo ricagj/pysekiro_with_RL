@@ -10,8 +10,8 @@ from pysekiro.get_vertices import roi
 
 # ---*---
 
-ROI_WIDTH   = 50
-ROI_HEIGHT  = 50
+ROI_WIDTH   = 100
+ROI_HEIGHT  = 100
 
 x   = 140
 x_w = 340
@@ -26,7 +26,8 @@ def learn_offline(
     start=1,
     end=1,
     model_weights=None,
-    save_path=None
+    save_path=None,
+    reward_curve_save_path='learn_offline.png'
     ):
 
     sekiro_agent = Sekiro_Agent(
@@ -46,14 +47,15 @@ def learn_offline(
             data = np.load(data_path, allow_pickle=True)
             print('\n', filename, f'total:{len(data):>5}')
             
+            sekiro_agent.reward_system.cur_status = get_status(dataset[0][0])    # 设置初始状态
             for step in range(len(data)-1):
 
                 # ---------- (S, A, R, S') ----------
                 
                 screen = data[step][0]               # 状态S
                 action = np.argmax(data[step][1][:5])    # 动作A
-                reward = sekiro_agent.reward_system.get_reward(get_status(screen))    # 奖励R
                 next_screen = data[step+1][0]        # 新状态S'
+                reward = sekiro_agent.reward_system.get_reward(get_status(next_screen))    # 奖励R
 
                 # ---------- store ----------
                 
@@ -67,14 +69,12 @@ def learn_offline(
 
                 # ---------- learn ----------
                 
-                sekiro_agent.step = step
+                sekiro_agent.step = step + 1
                 sekiro_agent.learn()
 
             sekiro_agent.save_evaluate_network()    # 这个数据学习完毕，保存网络权重
-            sekiro_agent.reward_system.save_reward_curve(
-                save_path = os.path.join('Data_quality', target, filename[:-4]+'.png')
-            )    # 绘制 reward 曲线并保存
-            print(f'\r [summary] round:{i:>3}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>}')
+            sekiro_agent.reward_system.save_reward_curve(save_path=reward_curve_save_path)    # 绘制 reward 曲线并保存
+            print(f'[summary] round:{i:>3}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>}', end='\n\n')
 
         else:
             print(f'{filename} does not exist ')

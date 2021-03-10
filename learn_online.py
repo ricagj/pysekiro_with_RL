@@ -12,8 +12,8 @@ from pysekiro.grab_screen import get_screen
 
 # ---*---
 
-ROI_WIDTH   = 50
-ROI_HEIGHT  = 50
+ROI_WIDTH   = 100
+ROI_HEIGHT  = 100
 
 x   = 140
 x_w = 340
@@ -23,14 +23,18 @@ y_h = 230
 # ---*---
 
 # 在线学习
-def learn_online(model_weights=None, save_path=None):
+def learn_online(
+    model_weights=None,
+    save_path=None,
+    reward_curve_save_path='learn_online.png'
+    ):
 
     sekiro_agent = Sekiro_Agent(
         model_weights=model_weights,
         save_path = save_path
     )
     
-    if save_path:
+    if save_path:    # 判断是训练模式还是测试模式
         train = True
     else:
         train = False
@@ -56,8 +60,8 @@ def learn_online(model_weights=None, save_path=None):
             # ---------- (S, A, R, S') ----------
 
             action = sekiro_agent.choose_action(screen, train)    # 动作A
-            reward = sekiro_agent.reward_system.get_reward(get_status(screen, show=True))    # 奖励R
             next_screen = get_screen()    # 新状态S'
+            reward = sekiro_agent.reward_system.get_reward(get_status(next_screen))    # 奖励R
 
             # ---------- 下一个轮回 ----------
 
@@ -86,12 +90,12 @@ def learn_online(model_weights=None, save_path=None):
             if t > 0:
                 time.sleep(t)
 
-            print(f'\r{" "*100}step:{step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds.', end='')
+            print(f'\rstep:{step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds.', end='')
             
             if 'P' in keys:
                 if train:
                     sekiro_agent.save_evaluate_network()    # 学习完毕，保存网络权重
-                sekiro_agent.reward_system.save_reward_curve(save_path='learn_online.png')    # 绘制 reward 曲线并保存在当前目录
+                sekiro_agent.reward_system.save_reward_curve(save_path=reward_curve_save_path)    # 绘制 reward 曲线并保存在当前目录
                 break
 
     print('\nDone!')

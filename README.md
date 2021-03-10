@@ -6,16 +6,16 @@
     <a>中文</a>
 </p>
 
-![demo.png](https://github.com/ricagj/pysekiro/blob/main/imgs/demo.png?raw=true)
+![demo.png](https://github.com/ricagj/pysekiro/blob/main/imgs/demo.png?raw=true)  
 
 ## 快速开始
 
 [快速开始](https://github.com/ricagj/pysekiro_with_RL/blob/main/Quick_start.ipynb)  
-[了解训练是如何进行的](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_is_it_trained.ipynb)  
+[如何训练](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_is_it_trained.ipynb)  
 
 ## 项目结构
 
-[了解项目各部分是如何工作的](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)  
+[了解项目基础部分是如何工作的](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)  
 
 - Data_quality (存放收集数据时记录的reward曲线)
     - Genichiro_Ashina （苇名弦一郎）
@@ -28,21 +28,20 @@
 - pysekiro
     - \__init__.py
     - 
-    - get_keys.py (捕获键盘的按键)
-    - direct_keys.py (控制键盘的按键)
-    - actions.py (动作控制)
+    - adjustment.py (游戏窗口校准)
+    - 
+    - collect_data.py (收集数据)
+    - 
+    - Agent.py (DQN)
+    - model.py （模型定义）
     - 
     - grab_screen.py (屏幕图像抓取)
     - get_vertices.py (顶点位置获取)
     - get_status.py (状态获取)
     - 
-    - adjustment.py (游戏窗口校准)
-    - 
-    - collect_data.py (收集数据)
-    - 
-    - model.py （模型定义）
-    - train_with_dl.py （用深度学习训练）
-    - Agent.py (DQN)
+    - get_keys.py (捕获键盘的按键)
+    - direct_keys.py (控制键盘的按键)
+    - actions.py (动作控制)
 - 
 - learn_offline.py (离线学习)
 - learn_online.py (在线学习\测试模型)
