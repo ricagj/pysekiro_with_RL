@@ -19,15 +19,13 @@ def main():
 
             screen = get_screen()    # 获取屏幕图像
 
-            get_status(screen, show=True)
+            get_status(screen, show=True)    # 显示状态
 
+            # 校准线
             screen[246:,[29, 182], :] = 255
-
             screen[[233, 235],240:290, :] = 255
             screen[235:,240, :] = 255
-
             screen[:25,[29, 130], :] = 255
-
             screen[[16, 18],240:327, :] = 255
             screen[:16,240, :] = 255
 
