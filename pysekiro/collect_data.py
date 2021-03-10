@@ -7,10 +7,11 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 from pysekiro.get_keys import key_check
 from pysekiro.grab_screen import get_screen
 
-def get_output(keys):    # 对按键信息进行独热编码
+def get_output(keys):
 
     output = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+    # 对参与训练的按键信息进行独热编码
     # 攻击、防御、垫步、跳跃和使用道具不能同时进行（指0.1秒内），但是可以和移动同时进行
     if   'J' in keys:
         output[0] = 1    # 等同于[1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -21,22 +22,22 @@ def get_output(keys):    # 对按键信息进行独热编码
     elif 'SPACE' in keys:
         output[3] = 1    # 等同于[0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
     elif 'R' in keys:
-        output[5] = 1    # 等同于[0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
-        output[4] = 1
+        output[5] = 1    # 等同于[0, 0, 0, 0, 0, 1, 0, 0, 0, 0]    不参与训练
+        output[4] = 1    # 等同于[0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
     else:
         output[4] = 1    # 等同于[0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
 
     # 不能同时前后移动
     if   'W' in keys:
-        output[6] = 1    # 等同于[0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+        output[6] = 1    # 等同于[0, 0, 0, 0, 0, 0, 1, 0, 0, 0]    不参与训练
     elif 'S' in keys:
-        output[7] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
+        output[7] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 1, 0, 0]    不参与训练
 
     # 不能同时左右移动
     if   'A' in keys:
-        output[8] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+        output[8] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 0, 1, 0]    不参与训练
     elif 'D' in keys:
-        output[9] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+        output[9] = 1    # 等同于[0, 0, 0, 0, 0, 0, 0, 0, 0, 1]    不参与训练
 
     return output
 
@@ -80,16 +81,17 @@ class Data_collection:
 
                 screen = get_screen()    # 获取屏幕图像
                 if not (np.sum(screen == 0) > 97200):    # 270 * 480 * 3 / 4 = 97200 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停收集数据
-                    action_onehot = get_output(keys)    # 获取按键输出
-                    self.dataset.append([screen, action_onehot])    # 图像和输出打包在一起，保证一一对应
+                    action_list = get_output(keys)    # 获取按键输出列表
+                    self.dataset.append([screen, action_list])    # 图像和输出打包在一起，保证一一对应
 
-                # 降低数据采集的频率，两次采集的时间间隔为0.1秒
+                # 降低数据采集的频率，周期为0.1秒
+                T = 0.1
                 t = 0.1-(time.time()-last_time)
                 if t > 0:
                     time.sleep(t)
 
                 print(f'\rstep:{self.step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds.', end='')
 
-                if 'P' in keys:    # 结束，保存数据
+                if 'P' in keys:    # 结束
                     self.save_data()    # 保存数据
                     break
