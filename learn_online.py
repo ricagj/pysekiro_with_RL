@@ -50,6 +50,7 @@ def learn_online(
         keys = key_check()
         if paused:
             screen = get_screen()    # 首个 状态S，但是在按 'T' 之前，它会不断更新
+            sekiro_agent.reward_system.cur_status = get_status(screen)    # 设置初始状态
             if 'T' in keys:
                 paused = False
                 print('\nStarting!')

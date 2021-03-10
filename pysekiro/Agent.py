@@ -47,20 +47,17 @@ class RewardSystem:
         self.reward_history = list()    # reward 的积累过程
 
     def get_reward(self, next_status):
-        if sum(status) != 0:
+        if sum(next_status) != 0:
 
             self.next_status = next_status
 
-            # 自身状态的计算方法：(下一个的状态 - 当前的状态) * 正负强化权重
-            s1 = (self.next_status[0] - self.cur_status[0]) *  1    # 自身生命
-            s2 = (self.next_status[1] - self.cur_status[1]) * -1    # 自身架势
-
-            # 目标状态的计算方法：约束上下限(下一个的状态 - 当前的状态) * 正负强化权重
+            # 状态的计算方法：约束上下限(下一个的状态 - 当前的状态) * 正负强化权重
+            s1 = limit((self.next_status[0] - self.cur_status[0]), -152,   0) *  1    # 自身生命
+            s2 = limit((self.next_status[1] - self.cur_status[1]),  -20, +20) * -1    # 自身架势
             t1 = limit((self.next_status[2] - self.cur_status[2]), -100,   0) * -1    # 目标生命
             t2 = limit((self.next_status[3] - self.cur_status[3]),  -20, +20) *  1    # 目标架势
 
-            # 分开生命值和架势并赋予这样的权重是为了降低生命值状态变化的影响
-            reward = 0.1 * (s1 + t1) + 0.9 * (s2 + t2)
+            reward = s1 + s2 + t1 + t2
             # print(f'\t s1:{s1:>4}, s2:{s2:>4}, t1:{t1:>4}, t2:{t2:>4}, reward:{reward:>4}')
 
             self.cur_status = self.next_status
@@ -140,7 +137,7 @@ class Sekiro_Agent:
         self,
         n_action = n_action, 
         gamma = 0.99,
-        batch_size = 128,
+        batch_size = 16,
         replay_memory_size = 20000,
         epsilon = 1.0,
         epsilon_decrease_rate = 0.999,

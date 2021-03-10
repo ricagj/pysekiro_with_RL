@@ -47,7 +47,7 @@ def learn_offline(
             data = np.load(data_path, allow_pickle=True)
             print('\n', filename, f'total:{len(data):>5}')
             
-            sekiro_agent.reward_system.cur_status = get_status(dataset[0][0])    # 设置初始状态
+            sekiro_agent.reward_system.cur_status = get_status(data[0][0])    # 设置初始状态
             for step in range(len(data)-1):
 
                 # ---------- (S, A, R, S') ----------

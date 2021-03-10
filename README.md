@@ -60,8 +60,8 @@ conda activate pysekiro
 conda install pandas
 conda install matplotlib
 conda install pywin32
-pip install opencv-python>=4.0
-pip install tensorflow>=2.0
+pip install opencv-python>=4.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install tensorflow>=2.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
 conda install -c conda-forge jupyterlab
 ~~~
 
