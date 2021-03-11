@@ -31,6 +31,7 @@ def learn_offline(
     ):
 
     sekiro_agent = Sekiro_Agent(
+        batch_size = 128,
         model_weights = model_weights,
         save_path = save_path
     )
@@ -73,8 +74,9 @@ def learn_offline(
                 sekiro_agent.learn()
 
             sekiro_agent.save_evaluate_network()    # 这个数据学习完毕，保存网络权重
-            sekiro_agent.reward_system.save_reward_curve(save_path=reward_curve_save_path)    # 绘制 reward 曲线并保存
             print(f'[summary] round:{i:>3}, current_cumulative_reward:{sekiro_agent.reward_system.current_cumulative_reward:>5.3f}, memory:{sekiro_agent.replayer.count:7>}', end='\n\n')
 
         else:
             print(f'{filename} does not exist ')
+
+    sekiro_agent.reward_system.save_reward_curve(save_path=reward_curve_save_path)    # 绘制 reward 曲线并保存

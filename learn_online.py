@@ -91,7 +91,7 @@ def learn_online(
             if t > 0:
                 time.sleep(t)
 
-            print(f'\rstep:{step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds.', end='')
+            print(f'\rstep:{step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action {action}', end='')
             
             if 'P' in keys:
                 if train:
