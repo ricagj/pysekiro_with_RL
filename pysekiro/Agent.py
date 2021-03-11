@@ -51,14 +51,14 @@ class RewardSystem:
 
             self.next_status = next_status
 
-            # 状态的计算方法：约束上下限(下一个的状态 - 当前的状态) * 正负强化权重
-            s1 = limit((self.next_status[0] - self.cur_status[0]), -152,   0) *  1    # 自身生命
-            s2 = limit((self.next_status[1] - self.cur_status[1]),  -20, +20) * -1    # 自身架势
-            t1 = limit((self.next_status[2] - self.cur_status[2]), -100,   0) * -1    # 目标生命
-            t2 = limit((self.next_status[3] - self.cur_status[3]),  -20, +20) *  1    # 目标架势
+            # 增加的部分：不约束数值，但目标架势有额外奖励
+            # 目的是让Agent尽量维持和积累目标架势。
+            # 目前处于测试阶段
 
-            reward = s1 + s2 + t1 + t2
-            # print(f'\t s1:{s1:>4}, s2:{s2:>4}, t1:{t1:>4}, t2:{t2:>4}, reward:{reward:>4}')
+            # 计算方法：求和[(下一个的状态 - 当前的状态) * 各自的正负强化权重] + 额外奖励
+            # 额外奖励：(目标当前架势 -自身当前架势) * 折扣系数
+            extra_bonus = (self.cur_status[3]- self.cur_status[1]) * 0.01
+            reward = sum((np.array(self.next_status) - np.array(self.cur_status)) * [1, -1, -1, 1]) + extra_bonus
 
             self.cur_status = self.next_status
         else:
