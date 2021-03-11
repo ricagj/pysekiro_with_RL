@@ -64,10 +64,6 @@ def learn_online(
             next_screen = get_screen()    # 新状态S'
             reward = sekiro_agent.reward_system.get_reward(get_status(next_screen))    # 奖励R
 
-            # ---------- 下一个轮回 ----------
-
-            screen = next_screen    # 状态S
-
             if train:
                 if not (np.sum(screen == 0) > 97200):    # 270 * 480 * 3 / 4 = 97200 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停存储数据
 
@@ -85,7 +81,11 @@ def learn_online(
 
                     sekiro_agent.step += 1
                     sekiro_agent.learn()
+            
+            # ---------- 下一个轮回 ----------
 
+            screen = next_screen    # 状态S
+            
             # 降低数据采集的频率，两次采集的时间间隔为0.1秒
             t = 0.1-(time.time()-last_time)
             if t > 0:
