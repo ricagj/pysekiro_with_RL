@@ -43,13 +43,5 @@ def grab_screen(region=None):
 GAME_WIDTH = 1280
 GAME_HEIGHT = 720
 
-# 标准窗口大小
-STANDARD_WIDTH = 480
-STANDARD_HEIGHT = 270
-
 def get_screen():
-    # 屏幕捕获，并图像缩放
-    screen = grab_screen(region=(0, 30, GAME_WIDTH, GAME_HEIGHT+30))
-    screen = cv2.resize(screen, (STANDARD_WIDTH, STANDARD_HEIGHT))
-
-    return screen
+    return grab_screen(region=(0, 30, GAME_WIDTH, GAME_HEIGHT+30))

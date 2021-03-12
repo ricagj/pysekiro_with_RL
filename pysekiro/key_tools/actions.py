@@ -1,7 +1,7 @@
 import threading
 import time
 
-from pysekiro.direct_keys import PressKey, ReleaseKey
+from pysekiro.key_tools.direct_keys import PressKey, ReleaseKey
 
 # ---*---
 
@@ -20,7 +20,7 @@ dk = {
     # 'LCONTROL' : 0x1D,
     'K' : 0x25,
     # 'F' : 0x21,
-    'R' : 0x13,
+    # 'R' : 0x13,
 }
 
 # ---*---
@@ -99,12 +99,11 @@ def NOKEY():
     # ReleaseKey(dk['LCONTROL'])
     ReleaseKey(dk['K'])
     # ReleaseKey(dk['F'])
-    ReleaseKey(dk['R'])
+    # ReleaseKey(dk['R'])
 
 # ---*---
 
-# 根据 collect_data.py 中的 get_output()
-def act(action):
+def act(action=4, WS=2, AD=2):
     
     if   action == 0:
         act = Attack       # 攻击
@@ -114,19 +113,25 @@ def act(action):
         act = Step_Dodge   # 垫步
     elif action == 3:
         act = Jump         # 跳跃
-    elif action == 4:
-        act = NOKEY        # 无键
-
+    else:
+        act = NOKEY        # 无键, 无动作
     act_process = threading.Thread(target=act)
     act_process.start()
 
-# elif action == 5:
-#     act = Use_Item     # 使用道具    
-# elif action == 6:
-#     act = Move_Forward # 移动 前
-# elif action == 7:
-#     act = Move_Back    # 移动 后
-# elif action == 8:
-#     act = Move_Left    # 移动 左
-# elif action == 9:
-#     act = Move_Right   # 移动 右
+    # if   WS == 0:
+    #     ws = Move_Forward # 移动 前
+    # elif WS == 1:
+    #     ws = Move_Back    # 移动 后
+    # else:
+    #     ws = NOKEY        # 无键, 无动作
+    # ws_process = threading.Thread(target=ws)
+    # ws_process.start()
+
+    # if   AD == 0:
+    #     ad = Move_Left    # 移动 左
+    # elif AD == 1:
+    #     ad = Move_Right   # 移动 右
+    # else:
+    #     ad = NOKEY        # 无键, 无动作
+    # ad_process = threading.Thread(target=ad)
+    # ad_process.start()
