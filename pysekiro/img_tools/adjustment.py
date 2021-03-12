@@ -1,8 +1,8 @@
 import cv2
 
-from pysekiro.get_keys import key_check
-from pysekiro.get_status import get_status
-from pysekiro.grab_screen import get_screen
+from pysekiro.img_tools.get_status import get_status
+from pysekiro.img_tools.grab_screen import get_screen
+from pysekiro.key_tools.get_keys import key_check
 
 def main():
 
@@ -22,12 +22,15 @@ def main():
             get_status(screen, show=True)    # 显示状态
 
             # 校准线
-            screen[246:,[29, 182], :] = 255
-            screen[[233, 235],240:290, :] = 255
-            screen[235:,240, :] = 255
-            screen[:25,[29, 130], :] = 255
-            screen[[16, 18],240:327, :] = 255
-            screen[:16,240, :] = 255
+            screen[653:,[77, 78, 488, 489], :] = 255    # 自身生命
+
+            screen[[620, 621, 630, 631],641:775, :] = 255    # 自身架势
+            screen[620:,[641, 642], :] = 255    # 自身架势中线
+
+            screen[:72,[77, 78, 348, 349], :] = 255    # 目标生命
+
+            screen[[41, 42, 50, 51],641:874, :] = 255    # 目标架势
+            screen[:51,[641, 642], :] = 255    # 目标架势中线
 
             cv2.namedWindow('screen', cv2.WINDOW_NORMAL)
             cv2.imshow('screen', screen)

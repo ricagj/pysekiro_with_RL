@@ -1,3 +1,6 @@
+# https://github.com/ZhiqingXiao/rl-book/blob/master/chapter10_atari/BreakoutDeterministic-v4_tf.ipynb
+# https://mofanpy.com/tutorials/machine-learning/reinforcement-learning/DQN3
+
 import os
 import re
 
@@ -7,58 +10,34 @@ import numpy as np
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 import pandas as pd
 
-from pysekiro.actions import act
-from pysekiro.get_status import get_status
-from pysekiro.get_vertices import roi
+from pysekiro.key_tools.actions import act
+from pysekiro.img_tools.get_vertices import roi
 from pysekiro.model import MODEL
-
-# ---*---
-
-ROI_WIDTH   = 100
-ROI_HEIGHT  = 100
-FRAME_COUNT = 3
-
-x   = 140
-x_w = 340
-y   = 30
-y_h = 230
-
-n_action = 5
-
-# ---*---
-
-# 约束状态值的上下限，防止异常值和特殊值的影响。
-def limit(value, lm1, lm2):
-
-    if value < lm1:
-        return lm1
-    elif value > lm2:
-        return lm2
-    else:
-        return value
 
 # ---*---
 
 class RewardSystem:
     def __init__(self):
-        self.cur_status = [152, 0, 100, 0]
+        self.cur_status = None
 
         self.current_cumulative_reward = 0    # 当前积累的 reward
         self.reward_history = list()    # reward 的积累过程
 
-    def get_reward(self, next_status):
+    # 获取奖励
+    def get_reward(self, next_status, cheating_mode=False):
         if sum(next_status) != 0:
 
             self.next_status = next_status
 
-            # 增加的部分：不约束数值，但目标架势有额外奖励
             # 目的是让Agent尽量维持和积累目标架势。
-            # 目前处于测试阶段
-
             # 计算方法：求和[(下一个的状态 - 当前的状态) * 各自的正负强化权重] + 额外奖励
             # 额外奖励：(目标当前架势 -自身当前架势) * 折扣系数
+            # 作弊模式不记生命值
             extra_bonus = (self.cur_status[3]- self.cur_status[1]) * 0.01
-            reward = sum((np.array(self.next_status) - np.array(self.cur_status)) * [1, -1, -1, 1]) + extra_bonus
+            if cheating_mode:
+                reward = sum((np.array(self.next_status) - np.array(self.cur_status)) * [0, -1,  0, 1]) + extra_bonus
+            else:
+                reward = sum((np.array(self.next_status) - np.array(self.cur_status)) * [1, -1, -1, 1]) + extra_bonus
 
             self.cur_status = self.next_status
         else:
@@ -76,38 +55,6 @@ class RewardSystem:
         plt.xlabel('training steps')
         plt.savefig(save_path)
         plt.show()
-
-def get_data_quality():
-    
-    reward_system = RewardSystem()
-    
-    path1 = 'The_battle_memory'
-    path2 = 'Data_quality'
-    
-    for target in os.listdir(path1):
-        save_dir = os.path.join(path2, target)
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-        data_list = os.listdir(os.path.join(path1, target))
-
-        m = max([int(re.findall('\d+', x)[0]) for x in data_list])
-        for i in range(1, m+1):
-            filename = f'training_data-{i}.npy'
-            data_path = os.path.join(path1, target, filename)
-
-            if os.path.exists(data_path):
-                dataset = np.load(data_path, allow_pickle=True)
-
-                reward_system.cur_status = get_status(dataset[0][0])
-                for step in range(1, len(dataset)):
-                    reward_system.get_reward(get_status(dataset[step][0]))
-                reward_system.save_reward_curve(save_path=os.path.join(path2, target, filename[:-4]+'.png'))
-                
-                reward_system.current_cumulative_reward = 0
-                reward_system.reward_history = list()
-                print(data_path, 'done')
-            else:
-                print(f'{filename} does not exist ')
 
 # ---*---
 
@@ -132,32 +79,32 @@ class DQNReplayer:
 
 # ---*---
 
+RESIZE_WIDTH   = 100
+RESIZE_HEIGHT  = 100
+FRAME_COUNT = 3
+
+# ---*---
+
 class Sekiro_Agent:
     def __init__(
         self,
-        n_action = n_action, 
-        gamma = 0.99,
-        batch_size = 16,
-        replay_memory_size = 20000,
-        epsilon = 1.0,
-        epsilon_decrease_rate = 0.999,
-        update_freq = 100,
-        target_network_update_freq = 300,
+        n_action, 
+        batch_size,
         model_weights = None,
         save_path = None
     ):
         self.n_action = n_action    # 动作数量
         
-        self.gamma = gamma    # 奖励衰减
+        self.gamma = 0.99    # 奖励衰减
 
-        self.batch_size = batch_size                    # 样本抽取数量
-        self.replay_memory_size = replay_memory_size    # 记忆容量
+        self.batch_size = batch_size    # 样本抽取数量
+        self.replay_memory_size = 20000    # 记忆容量
 
-        self.epsilon = epsilon                                # 探索参数
-        self.epsilon_decrease_rate = epsilon_decrease_rate    # 探索衰减率
+        self.epsilon = 1.0                     # 探索参数
+        self.epsilon_decrease_rate = 0.9998    # 探索衰减率
 
-        self.update_freq = update_freq    # 训练评估网络的频率
-        self.target_network_update_freq = target_network_update_freq    # 更新目标网络的频率
+        self.update_freq = 50                    # 训练评估网络的频率
+        self.target_network_update_freq = 300    # 更新目标网络的频率
 
         self.model_weights = model_weights    # 指定读取的模型参数的路径
         self.save_path = save_path            # 指定模型权重保存的路径
@@ -166,14 +113,14 @@ class Sekiro_Agent:
         
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
-        self.reward_system = RewardSystem()                     # 奖惩系统
+        self.reward_system = RewardSystem()    # 奖惩系统
         self.replayer = DQNReplayer(self.replay_memory_size)    # 经验回放
 
         self.step = 0    # 计步
 
     # 评估网络和目标网络的构建方法
     def build_network(self):
-        model = MODEL(ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT,
+        model = MODEL(RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT,
             outputs = self.n_action,
             model_weights = self.model_weights
         )
@@ -193,7 +140,7 @@ class Sekiro_Agent:
         
         # train = False 直接进入这里
         else:
-            screen = cv2.resize(roi(screen, x, x_w, y, y_h), (ROI_WIDTH, ROI_HEIGHT)).reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
+            screen = cv2.resize(screen, (RESIZE_WIDTH, RESIZE_HEIGHT)).reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
             q_values = self.evaluate_net.predict(screen)[0]
             action = np.argmax(q_values)
         
@@ -214,8 +161,8 @@ class Sekiro_Agent:
             # 经验回放
             screens, actions, rewards, next_screens = self.replayer.sample(self.batch_size)
 
-            screens = screens.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
-            next_screens = next_screens.reshape(-1, ROI_WIDTH, ROI_HEIGHT, FRAME_COUNT)
+            screens = screens.reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
+            next_screens = next_screens.reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
 
             # 计算回报的估计值
             q_next = self.target_net.predict(next_screens)
