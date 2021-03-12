@@ -64,7 +64,7 @@ def Jump():
 
 def Attack():
     PressKey(dk['J'])
-    time.sleep(0.1)
+    time.sleep(0.12)
     ReleaseKey(dk['J'])
 
 # def Use_Prosthetic_Tool():
@@ -74,7 +74,7 @@ def Attack():
 
 def Deflect():
     PressKey(dk['K'])
-    time.sleep(0.1)
+    time.sleep(0.12)
     ReleaseKey(dk['K'])
 
 # def Grappling_Hook():
