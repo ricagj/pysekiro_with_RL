@@ -42,10 +42,10 @@ class RewardSystem:
             self.cur_status = self.next_status
         else:
             reward = 0
-        
+
         self.current_cumulative_reward += reward
         self.reward_history.append(self.current_cumulative_reward)
-        
+
         return reward
 
     def save_reward_curve(self, save_path='reward.png'):
@@ -101,7 +101,7 @@ class Sekiro_Agent:
         self.replay_memory_size = 20000    # 记忆容量
 
         self.epsilon = 1.0                     # 探索参数
-        self.epsilon_decrease_rate = 0.9998    # 探索衰减率
+        self.epsilon_decrease_rate = 0.999    # 探索衰减率
 
         self.update_freq = 50                    # 训练评估网络的频率
         self.target_network_update_freq = 300    # 更新目标网络的频率
@@ -110,7 +110,7 @@ class Sekiro_Agent:
         self.save_path = save_path            # 指定模型权重保存的路径
         if not self.save_path:
             self.save_path = 'tmp_weights.h5'
-        
+
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
         self.reward_system = RewardSystem()    # 奖惩系统
@@ -132,21 +132,22 @@ class Sekiro_Agent:
             r = np.random.rand()
         else:
             r = 1.01    # 永远大于 self.epsilon
-        
+
         # train = True 开启探索模式
         if r < self.epsilon:
             self.epsilon *= self.epsilon_decrease_rate    # 逐渐减小探索参数, 降低行为的随机性
-            action = np.random.randint(self.n_action)
-        
+            q_values = np.random.rand(self.n_action) * [0.15, 0.15, 0.1, 0.1, 0.5]
+
         # train = False 直接进入这里
         else:
-            screen = cv2.resize(screen, (RESIZE_WIDTH, RESIZE_HEIGHT)).reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
+            screen = screen.reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
             q_values = self.evaluate_net.predict(screen)[0]
-            action = np.argmax(q_values)
-        
+
+        action = np.argmax(q_values)
+
         # 执行动作
         act(action)
-        
+
         return action
 
     # 学习方法
@@ -155,7 +156,7 @@ class Sekiro_Agent:
         if self.step >= self.batch_size and self.step % self.update_freq == 0:    # 更新评估网络
 
             if self.step % self.target_network_update_freq == 0:    # 更新目标网络
-                print(f'step:{self.step:>4}, current_cumulative_reward:{self.reward_system.current_cumulative_reward:>5.3f}, memory:{self.replayer.count:7>}')
+                print(f'\rstep:{self.step:>4}, current_cumulative_reward:{self.reward_system.current_cumulative_reward:>5.3f}, memory:{self.replayer.count:7>}')
                 self.update_target_network() 
 
             # 经验回放
@@ -170,6 +171,8 @@ class Sekiro_Agent:
             q_target[range(self.batch_size), actions] = rewards + self.gamma * q_next.max(axis=-1)
 
             self.evaluate_net.fit(screens, q_target, verbose=0)
+
+            self.save_evaluate_network()
 
     # 更新目标网络权重方法
     def update_target_network(self):

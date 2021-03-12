@@ -31,7 +31,8 @@ class Play_Sekiro:
         model_weights=None,
         save_path=None,
         reward_curve_save_path='reward.png',
-        cheating_mode=False    # 作弊模式
+        cheating_mode=False,
+        play_yourself=False
     ):
         self.sekiro_agent = Sekiro_Agent(n_action, batch_size, model_weights, save_path)
         if save_path:    # 判断是训练模式还是测试模式
@@ -39,7 +40,8 @@ class Play_Sekiro:
         else:
             self.train = False
         self.reward_curve_save_path = reward_curve_save_path
-        self.step = 0    # 计步器
+        self.cheating_mode = cheating_mode
+        self.step = 1    # 计步器
 
     def learn(self):
         if self.train:
@@ -68,7 +70,7 @@ class Play_Sekiro:
 
         self.action = self.sekiro_agent.choose_action(self.screen, self.train)    # 选取 动作A
         next_screen = get_screen()    # 观测 新状态
-        self.reward = self.sekiro_agent.reward_system.get_reward(get_status(next_screen), cheating_mode)    # 计算 奖励R
+        self.reward = self.sekiro_agent.reward_system.get_reward(get_status(next_screen), self.cheating_mode)    # 计算 奖励R
         self.next_screen = cv2.resize(roi(next_screen, x, x_w, y, y_h), (RESIZE_WIDTH, RESIZE_HEIGHT))    # 获取 新状态S'
 
         self.learn()
@@ -90,7 +92,7 @@ class Play_Sekiro:
             if paused:
                 screen = get_screen()
                 self.sekiro_agent.reward_system.cur_status = get_status(screen)    # 设置初始状态
-                self.screen = roi(screen, x, x_w, y, y_h)    # 首个 状态S，但是在按 'T' 之前，它会不断更新
+                self.screen = cv2.resize(roi(screen, x, x_w, y, y_h), (RESIZE_WIDTH, RESIZE_HEIGHT))    # 首个 状态S，但是在按 'T' 之前，它会不断更新
                 if 'T' in keys:    # 按 'T' 之后，开始训练，此时刚刚获得的 状态S 就是首个 状态S，然后进入 getSARS_() 依次获得 动作A、奖励R 和 新状态S'，再进入第二个轮回  
                     paused = False
                     print('\nStarting!')
@@ -105,10 +107,10 @@ class Play_Sekiro:
                 if t > 0:
                     time.sleep(t)
 
-                print(f'\rstep:{self.step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds. action {self.action}', end='')
+                print(f'\rstep:{self.step:>5}. Loop took {round(time.time()-last_time, 3):>5} seconds. action {self.action:>2}', end='')
 
                 if 'P' in keys:
-                    if train:
+                    if self.train:
                         self.sekiro_agent.save_evaluate_network()    # 学习完毕，保存网络权重
                     self.sekiro_agent.reward_system.save_reward_curve(save_path=self.reward_curve_save_path)    # 绘制 reward 曲线并保存在当前目录
                     break
