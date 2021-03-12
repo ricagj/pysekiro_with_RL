@@ -15,26 +15,20 @@ def identity_block(input_tensor,out_dim):
     out = tf.keras.layers.Add()([input_tensor, conv5])
     out = tf.nn.relu(out)
     return out
-def MODEL(width, height, frame_count, outputs, model_weights=None):
+def MODEL(width, height, frame_count, outputs, load_weights_path=None):
 
     input_xs = tf.keras.Input(shape=[width, height, frame_count])
 
-    out_dim = 32
+    out_dim = 16
     conv_1 = tf.keras.layers.Conv2D(filters=out_dim,kernel_size=3,padding="SAME",activation=tf.nn.relu)(input_xs)
 
-    out_dim = 32
-    identity_1 = tf.keras.layers.Conv2D(filters=out_dim, kernel_size=3, padding="SAME", activation=tf.nn.relu)(conv_1)
-    identity_1 = tf.keras.layers.BatchNormalization()(identity_1)
-    for _ in range(3):
-        identity_1 = identity_block(identity_1,out_dim)
+    out_dim = 16
+    identity = tf.keras.layers.Conv2D(filters=out_dim, kernel_size=3, padding="SAME", activation=tf.nn.relu)(conv_1)
+    identity = tf.keras.layers.BatchNormalization()(identity)
+    for _ in range(2):
+        identity = identity_block(identity,out_dim)
 
-    out_dim = 32
-    identity_2 = tf.keras.layers.Conv2D(filters=out_dim, kernel_size=3, padding="SAME", activation=tf.nn.relu)(identity_1)
-    identity_2 = tf.keras.layers.BatchNormalization()(identity_2)
-    for _ in range(3):
-        identity_2 = identity_block(identity_2,out_dim)
-
-    flat = tf.keras.layers.Flatten()(identity_2)
+    flat = tf.keras.layers.Flatten()(identity)
     dense = tf.keras.layers.Dense(16,activation=tf.nn.relu)(flat)
     dense = tf.keras.layers.BatchNormalization()(dense)
 
@@ -47,10 +41,10 @@ def MODEL(width, height, frame_count, outputs, model_weights=None):
         loss=tf.keras.losses.MeanSquaredError(),
     )
 
-    if model_weights:
-        if os.path.exists(model_weights):
-            model.load_weights(model_weights)
-            print('Load ' + model_weights)
+    if load_weights_path:
+        if os.path.exists(load_weights_path):
+            model.load_weights(load_weights_path)
+            print('Load ' + load_weights_path)
         else:
             print('Nothing to load')
     return model

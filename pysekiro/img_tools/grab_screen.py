@@ -44,4 +44,4 @@ GAME_WIDTH = 1280
 GAME_HEIGHT = 720
 
 def get_screen():
-    return grab_screen(region=(0, 30, GAME_WIDTH, GAME_HEIGHT+30))
+    return grab_screen(region=(0, 30, GAME_WIDTH, GAME_HEIGHT+30))    # 游戏最上面30像素是白色边框
