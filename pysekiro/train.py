@@ -81,10 +81,10 @@ class Play_Sekiro:
                 # ----- store -----
                 # 集齐 (S, A, R, S')后开始存储
                 self.sekiro_agent.replayer.store(
-                    self.screen,    # 截取感兴趣区域并图像缩放
+                    self.screen,
                     self.action,
                     self.reward,
-                    self.next_screen    # 截取感兴趣区域并图像缩放
+                    self.next_screen
                 )    # 存储经验
 
                 # ----- learn -----
@@ -99,10 +99,15 @@ class Play_Sekiro:
         # 进入下一个轮回
 
         self.action = self.sekiro_agent.choose_action(self.screen, self.train)    # 选取 动作A
+
+        # 延迟观测新状态，为了能够观测到状态变化
+        time.sleep(0.1)
+
         next_screen = get_screen()    # 观测 新状态
         status = get_status(next_screen)
         self.status_info = status[4]    # 状态信息
-        self.reward = self.sekiro_agent.reward_system.get_reward(status[:4])    # 计算 奖励R
+        
+        self.reward = self.sekiro_agent.reward_system.get_reward(status[:4], self.action)    # 计算 奖励R
         self.next_screen = cv2.resize(roi(next_screen, x, x_w, y, y_h), (RESIZE_WIDTH, RESIZE_HEIGHT))    # 获取 新状态S'
 
         self.learn()
@@ -121,7 +126,7 @@ class Play_Sekiro:
 
         while True:
 
-            last_time = time.time()
+            self.last_time = time.time()
             keys = key_check()
             if paused:
                 if 'T' in keys:
@@ -140,12 +145,12 @@ class Play_Sekiro:
 
                 self.getSARS_()
 
-                # 降低数据采集的频率，两次采集的时间间隔为0.2秒（包含延迟和程序本身执行所需时间）
-                t = 0.198-(time.time()-last_time)
+                # 控制一个回合的周期为0.25秒（包含延迟和程序本身执行所需时间）
+                t = 0.248-(time.time()-self.last_time)
                 if t > 0:
                     time.sleep(t)
 
-                print(f'\rstep:{self.step:>6}. Loop took {round(time.time()-last_time, 3):>5} seconds. action {self.action:>1}, {self.status_info}, total_reward:{self.sekiro_agent.reward_system.total_reward:>10.3f}, memory:{self.sekiro_agent.replayer.count:7>}.', end='')
+                print(f'\rstep:{self.step:>6}. Loop took {round(time.time()-self.last_time, 3):>5} seconds. action {self.action:>1}, {self.status_info}, total_reward:{self.sekiro_agent.reward_system.total_reward:>10.3f}, memory:{self.sekiro_agent.replayer.count:7>}.', end='')
 
                 if 'P' in keys:
                     if self.train:
