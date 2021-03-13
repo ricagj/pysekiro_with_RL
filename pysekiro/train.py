@@ -65,6 +65,7 @@ class Play_Sekiro:
                 self.sekiro_agent.replayer.count = i
                 print('Load ' + self.load_memory_path)
 
+                # 恢复探索率
                 self.sekiro_agent.epsilon *= self.sekiro_agent.epsilon_decrease_rate ** i
 
                 # 恢复步数，但去除零头，加1是为了避免刚进入就马上训练
@@ -139,8 +140,8 @@ class Play_Sekiro:
 
                 self.getSARS_()
 
-                # 降低数据采集的频率，两次采集的时间间隔为0.18秒
-                t = 0.18-(time.time()-last_time)
+                # 降低数据采集的频率，两次采集的时间间隔为0.2秒（包含延迟和程序本身执行所需时间）
+                t = 0.198-(time.time()-last_time)
                 if t > 0:
                     time.sleep(t)
 
