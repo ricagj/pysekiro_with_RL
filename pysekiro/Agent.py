@@ -163,6 +163,7 @@ class Sekiro_Agent:
             screens, actions, rewards, next_screens = self.replayer.sample(self.batch_size)
 
             screens = screens.reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
+            actions = actions.astype(np.int8)
             next_screens = next_screens.reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
 
             # 计算回报的估计值
