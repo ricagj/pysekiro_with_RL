@@ -19,17 +19,27 @@ class RewardSystem:
         self.reward_history = list()    # reward 的积累过程
 
     # 获取奖励
-    def get_reward(self, next_status):
+    def get_reward(self, next_status, action):
         if sum(next_status) != 0:
 
-            # 计算方法：求和[(下一个的状态 - 当前的状态) * 各自的正负强化权重]
             self.next_status = next_status
-            reward = sum((np.array(self.next_status) - np.array(self.cur_status)) * [0.1, -0.1, -0.1, 0.1])
+
+            # 计算方法：求和[(下一个的状态 - 当前的状态) * 各自的正负强化权重]
+
+            s1 = min(0, self.next_status[0] - self.cur_status[0])    # 自身生命，不计增加
+            t1 = min(0, self.next_status[2] - self.cur_status[2])    # 目标生命，不计增加
             
-            # Boss 把我们架势打没了还加分就离谱
-            Self_Posture_status = self.next_status[1] - self.cur_status[1]
-            if abs(Self_Posture_status) > 100:    # 特殊情况：当前架势变化超过100时很可能是被Boss击败了，所以不计自身架势这部分奖励，还有复活和击败boss时的也不计
-                reward -= Self_Posture_status * -0.1
+            s2 = self.next_status[1] - self.cur_status[1]    # 自身架势
+            s2 = s2 if abs(s2) < 100 else 0
+
+            t2 = self.next_status[3] - self.cur_status[3]    # 目标架势
+            t2 = t2 if abs(s2) < 200 else 0
+
+            if t1 != 0 or t2 != 0:
+                extra_bonus = 0.5 if action == 0 or action == 1 else 0
+            else:
+                extra_bonus = 0
+            reward = s1 * 0.1 + s2 * -0.1 + t1 * -0.1 + t2 *  0.1 + extra_bonus
 
         else:
             reward = 0
@@ -91,13 +101,13 @@ class Sekiro_Agent:
         
         self.gamma = 0.99    # 奖励衰减
 
-        self.replay_memory_size = 75000    # 记忆容量
-        self.replay_start_size  = 5000      # 开始经验回放时存储的记忆量
+        self.replay_memory_size = 22500     # 记忆容量
+        self.replay_start_size  = 500       # 开始经验回放时存储的记忆量
         self.batch_size = 64                # 样本抽取数量
 
         self.epsilon = 1.0                    # 初始探索率
-        self.epsilon_decrease_rate = 0.9999   # 探索衰减率
-        self.min_epsilon = 0.1                # 最终探索率
+        self.epsilon_decrease_rate = 0.9988   # 探索衰减率
+        self.min_epsilon = 0.3                # 最终探索率
 
         self.update_freq = 100                   # 训练评估网络的频率，约20秒
         self.target_network_update_freq = 300    # 更新目标网络的频率，约60秒
@@ -136,7 +146,7 @@ class Sekiro_Agent:
                 self.epsilon *= self.epsilon_decrease_rate    # 逐渐减小探索参数, 降低行为的随机性
             else:
                 self.epsilon = self.min_epsilon
-            q_values = np.random.rand(self.n_action)
+            q_values = np.random.rand(self.n_action) * np.array([1.8, 1.5, 1.2, 0.8, 1])
 
         # train = False 直接进入这里
         else:
