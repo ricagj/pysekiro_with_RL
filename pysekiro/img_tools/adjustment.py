@@ -19,17 +19,18 @@ def main():
 
             screen = get_screen()    # 获取屏幕图像
 
-            get_status(screen, show=True)    # 显示状态
+            status_info = get_status(screen)[4]    # 显示状态信息
+            print('\r' + status_info, end='')
 
             # 校准线
-            screen[653:,[77, 78, 488, 489], :] = 255    # 自身生命
+            screen[653:,[77, 78, 487, 488], :] = 255    # 自身生命
 
-            screen[[620, 621, 630, 631],641:775, :] = 255    # 自身架势
+            screen[[620, 621, 630, 631],641:768, :] = 255    # 自身架势
             screen[620:,[641, 642], :] = 255    # 自身架势中线
 
-            screen[:72,[77, 78, 348, 349], :] = 255    # 目标生命
+            screen[:72,[77, 78, 346, 347], :] = 255    # 目标生命
 
-            screen[[41, 42, 50, 51],641:874, :] = 255    # 目标架势
+            screen[[41, 42, 50, 51],641:871, :] = 255    # 目标架势
             screen[:51,[641, 642], :] = 255    # 目标架势中线
 
             cv2.namedWindow('screen', cv2.WINDOW_NORMAL)
