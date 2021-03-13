@@ -4,15 +4,15 @@
 
 ![demo.jpg](https://github.com/ricagj/pysekiro_with_RL/blob/main/demo.jpg?raw=true)  
 
-## **正在调试**
+## 降低训练标准
+
+1. 默认在作弊模式下训练（自身生命值不变，相应的奖励也为0，所以不需要写那些多余的代码，比如作弊模式什么的）
+2. 由胜负战变成限时战
+3. 目标是苇名弦一郎前两阶段（第三阶段与前两阶段差异较大，对训练不友好）
 
 ## 快速开始
 
 [快速开始](https://github.com/ricagj/pysekiro_with_RL/blob/main/Quick_start.ipynb)  
-
-新增作弊模式  
-游戏对它来说太难了，进入游戏5秒都撑不过，所以尝试一下让它作弊，在不计生命值情况下训练  
-**注：此模式下奖励的计算，不计生命值变化，只计架势变化。**
 
 ## 项目结构
 

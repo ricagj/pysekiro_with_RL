@@ -21,13 +21,20 @@ class RewardSystem:
     # 获取奖励
     def get_reward(self, next_status):
         if sum(next_status) != 0:
+
             # 计算方法：求和[(下一个的状态 - 当前的状态) * 各自的正负强化权重]
             self.next_status = next_status
-            reward = sum((np.array(self.next_status) - np.array(self.cur_status)) * [0.01, -0.01, -0.01, 0.01])
-            self.cur_status = next_status
+            reward = sum((np.array(self.next_status) - np.array(self.cur_status)) * [0.1, -0.1, -0.1, 0.1])
+            
+            # Boss 把我们架势打没了还加分就离谱
+            Self_Posture_status = self.next_status[1] - self.cur_status[1]
+            if abs(Self_Posture_status) > 100:    # 特殊情况：当前架势变化超过100时很可能是被Boss击败了，所以不计自身架势这部分奖励
+                reward -= Self_Posture_status * -0.1
+
         else:
-        	self.cur_status = next_status
             reward = 0
+
+        self.cur_status = next_status
 
         self.total_reward += reward
         self.reward_history.append(self.total_reward)
@@ -35,14 +42,15 @@ class RewardSystem:
         return reward
 
     def save_reward_curve(self, save_path='reward.png'):
-        plt.rcParams['figure.figsize'] = 100, 15
         total = len(self.reward_history)
-        plt.plot(np.arange(total), self.reward_history)
-        plt.ylabel('reward')
-        plt.xlabel('training steps')
-        plt.xticks(np.arange(0, total, int(total/100)))
-        plt.savefig(save_path)
-        plt.show()
+        if total > 100:
+            plt.rcParams['figure.figsize'] = 100, 15
+            plt.plot(np.arange(total), self.reward_history)
+            plt.ylabel('reward')
+            plt.xlabel('training steps')
+            plt.xticks(np.arange(0, total, int(total/100)))
+            plt.savefig(save_path)
+            plt.show()
 
 # ---*---
 
@@ -83,18 +91,19 @@ class Sekiro_Agent:
         
         self.gamma = 0.99    # 奖励衰减
 
-        self.replay_memory_size = 200000    # 记忆容量
-        self.replay_start_size = 5000       # 开始经验回放时存储的记忆量
-        self.batch_size = 16                # 样本抽取数量
+        self.replay_memory_size = 100000    # 记忆容量
+        self.replay_start_size  = 5000      # 开始经验回放时存储的记忆量
+        self.batch_size = 64                # 样本抽取数量
 
-        self.epsilon = 1.0                    # 探索参数
-        self.epsilon_decrease_rate = 0.99954  # 探索衰减率
+        self.epsilon = 1.0                    # 初始探索率
+        self.epsilon_decrease_rate = 0.9999   # 探索衰减率
+        self.min_epsilon = 0.1                # 最终探索率
 
-        self.update_freq = 100                   # 训练评估网络的频率
-        self.target_network_update_freq = 400    # 更新目标网络的频率
+        self.update_freq = 100                   # 训练评估网络的频率，约18秒
+        self.target_network_update_freq = 500    # 更新目标网络的频率，约90秒
 
-        self.load_weights_path = load_weights_path    # 指定读取的模型参数的路径
-        self.save_weights_path = save_weights_path    # 指定模型权重保存的路径
+        self.load_weights_path = load_weights_path    # 指定模型权重参数加载的路径。默认为None，不加载。
+        self.save_weights_path = save_weights_path    # 指定模型权重参数保存的路径。默认为None，不保存。注：默认也是测试模式，若设置该参数，就会开启训练模式
 
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
@@ -106,9 +115,9 @@ class Sekiro_Agent:
     # 评估网络和目标网络的构建方法
     def build_network(self):
         model = MODEL(
-        	width = RESIZE_WIDTH,
-        	height = RESIZE_HEIGHT,
-        	frame_count = FRAME_COUNT,
+            width = RESIZE_WIDTH,
+            height = RESIZE_HEIGHT,
+            frame_count = FRAME_COUNT,
             outputs = self.n_action,
             load_weights_path = self.load_weights_path
         )
@@ -123,8 +132,11 @@ class Sekiro_Agent:
 
         # train = True 开启探索模式
         if r < self.epsilon:
-            self.epsilon *= self.epsilon_decrease_rate    # 逐渐减小探索参数, 降低行为的随机性
-            q_values = np.random.rand(self.n_action) * [0.3, 0.25, 0.2, 0.1, 0.15]
+            if self.epsilon > self.min_epsilon:
+                self.epsilon *= self.epsilon_decrease_rate    # 逐渐减小探索参数, 降低行为的随机性
+            else:
+                self.epsilon = self.min_epsilon
+            q_values = np.random.rand(self.n_action)
 
         # train = False 直接进入这里
         else:
@@ -141,10 +153,10 @@ class Sekiro_Agent:
     # 学习方法
     def learn(self):
 
+        # 条件之一：记忆量符合开始经验回放时需要存储的记忆量
         if self.replayer.count >= self.replay_start_size and self.step % self.update_freq == 0:    # 更新评估网络
-
+            
             if self.step % self.target_network_update_freq == 0:    # 更新目标网络
-                print(f'\rstep:{self.step:>4}, total_reward:{self.reward_system.total_reward:>5.3f}, memory:{self.replayer.count:7>}')
                 self.update_target_network() 
 
             # 经验回放
