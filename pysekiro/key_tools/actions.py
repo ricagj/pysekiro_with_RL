@@ -1,4 +1,4 @@
-import threading
+# import threading
 import time
 
 from pysekiro.key_tools.direct_keys import PressKey, ReleaseKey
@@ -17,77 +17,64 @@ dk = {
     # 'Y' : 0x15,
 
     'J' : 0x24,
-    # 'LCONTROL' : 0x1D,
     'K' : 0x25,
-    # 'F' : 0x21,
-    # 'R' : 0x13,
 }
+
+# 设置动作本身执行所需的时间
+# 注，为了数据的稳定性，延时时间要统一
+delay = 0.1
 
 # ---*---
 
 # def Move_Forward():
 #     PressKey(dk['W'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['W'])
 
 # def Move_Back():
 #     PressKey(dk['S'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['S'])
 
 # def Move_Left():
 #     PressKey(dk['A'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['A'])
 
 # def Move_Right():
 #     PressKey(dk['D'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['D'])
 
 def Step_Dodge():
     PressKey(dk['LSHIFT'])
-    time.sleep(0.1)
+    time.sleep(delay)
     ReleaseKey(dk['LSHIFT'])
 
 def Jump():
     PressKey(dk['SPACE'])
-    time.sleep(0.1)
+    time.sleep(delay)
     ReleaseKey(dk['SPACE'])
 
 
 # def Lock_On():
 #     PressKey(dk['Y'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['Y'])
 
 
 def Attack():
     PressKey(dk['J'])
-    time.sleep(0.1)
+    time.sleep(delay)
     ReleaseKey(dk['J'])
-
-# def Use_Prosthetic_Tool():
-#     PressKey(dk['LCONTROL'])
-#     time.sleep(0.1)
-#     ReleaseKey(dk['LCONTROL'])
 
 def Deflect():
     PressKey(dk['K'])
-    time.sleep(0.1)
+    time.sleep(delay)
     ReleaseKey(dk['K'])
 
-# def Grappling_Hook():
-#     PressKey(dk['F'])
-#     time.sleep(0.1)
-#     ReleaseKey(dk['F'])
-
-# def Use_Item():
-#     PressKey(dk['R'])
-#     time.sleep(0.1)
-#     ReleaseKey(dk['R'])
-
 def NOKEY():
+    time.sleep(delay)
     ReleaseKey(dk['W'])
     ReleaseKey(dk['S'])
     ReleaseKey(dk['A'])
@@ -96,10 +83,7 @@ def NOKEY():
     ReleaseKey(dk['SPACE'])
     # ReleaseKey(dk['Y'])
     ReleaseKey(dk['J'])
-    # ReleaseKey(dk['LCONTROL'])
     ReleaseKey(dk['K'])
-    # ReleaseKey(dk['F'])
-    # ReleaseKey(dk['R'])
 
 # ---*---
 
@@ -115,8 +99,10 @@ def act(action=4, WS=2, AD=2):
         act = Jump         # 跳跃
     else:
         act = NOKEY        # 无键, 无动作
-    act_process = threading.Thread(target=act)
-    act_process.start()
+    
+    PressKey(dk['W'])
+    act()
+    ReleaseKey(dk['W'])
 
     # if   WS == 0:
     #     ws = Move_Forward # 移动 前

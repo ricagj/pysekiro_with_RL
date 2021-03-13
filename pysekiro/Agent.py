@@ -28,7 +28,7 @@ class RewardSystem:
             
             # Boss 把我们架势打没了还加分就离谱
             Self_Posture_status = self.next_status[1] - self.cur_status[1]
-            if abs(Self_Posture_status) > 100:    # 特殊情况：当前架势变化超过100时很可能是被Boss击败了，所以不计自身架势这部分奖励
+            if abs(Self_Posture_status) > 100:    # 特殊情况：当前架势变化超过100时很可能是被Boss击败了，所以不计自身架势这部分奖励，还有复活和击败boss时的也不计
                 reward -= Self_Posture_status * -0.1
 
         else:
@@ -91,7 +91,7 @@ class Sekiro_Agent:
         
         self.gamma = 0.99    # 奖励衰减
 
-        self.replay_memory_size = 100000    # 记忆容量
+        self.replay_memory_size = 75000    # 记忆容量
         self.replay_start_size  = 5000      # 开始经验回放时存储的记忆量
         self.batch_size = 64                # 样本抽取数量
 
@@ -99,8 +99,8 @@ class Sekiro_Agent:
         self.epsilon_decrease_rate = 0.9999   # 探索衰减率
         self.min_epsilon = 0.1                # 最终探索率
 
-        self.update_freq = 100                   # 训练评估网络的频率，约18秒
-        self.target_network_update_freq = 500    # 更新目标网络的频率，约90秒
+        self.update_freq = 100                   # 训练评估网络的频率，约20秒
+        self.target_network_update_freq = 300    # 更新目标网络的频率，约60秒
 
         self.load_weights_path = load_weights_path    # 指定模型权重参数加载的路径。默认为None，不加载。
         self.save_weights_path = save_weights_path    # 指定模型权重参数保存的路径。默认为None，不保存。注：默认也是测试模式，若设置该参数，就会开启训练模式
