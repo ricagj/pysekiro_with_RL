@@ -4,6 +4,8 @@
 
 ![demo.jpg](https://github.com/ricagj/pysekiro_with_RL/blob/main/demo.jpg?raw=true)  
 
+# 将移除多线程动作控制
+
 ## 降低训练标准
 
 1. 默认在作弊模式下训练（自身生命值不变，相应的奖励也为0，所以不需要写那些多余的代码，比如作弊模式什么的）
