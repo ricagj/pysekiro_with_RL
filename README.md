@@ -2,39 +2,20 @@
 
 #### If you need the English version, please send an issue.  
 
-![demo.jpg](https://github.com/ricagj/pysekiro_with_RL/blob/main/demo.jpg?raw=true)  
+![demo.jpg](https://github.com/ricagj/pysekiro_with_RL/blob/main/adjustment_02.png?raw=true)  
 
-## 最新说明
-
-1. 接下来进入训练时期，期间不会再像之前那样，代码频繁更新，两三天就大变样。
-2. 之后的每次修改代码，都会等那次训练的记忆容量填满之后才修改。
-	- replay_memory_size = 75000，一般情况下记忆量需要达到这个量才允许修改代码
-	- 出现bug除外
-	- 训练效果异常差除外
-
-[训练历史](https://github.com/ricagj/pysekiro/blob/main/train_history.ipynb)
+## 最新说明 
 
 #### 本次更新
 
-- 记忆容量
-	- replay_memory_size = 75000 **->** 22500
-- 开始经验回放时存储的记忆量
-	- replay_start_size  = 5000 **->** 500
-- 探索衰减率
-	- epsilon_decrease_rate = 0.9999 **->** 0.9988
-- 最终探索率
-	- min_epsilon = 0.1 **->** 0.3
-- 每回合的周期
-	- t = 0.2 **->** 0.25
-- 
-- 增大攻防触发的概率，减小垫跳触发的概率
-- 给对攻击或者防御增加额外奖励，条件是造成目标的状态改变
-- 在选取动作后观测新状态前增加延迟，为了能够观测到状态变化
+更新游戏设置，分辨率由 1280x720 变成800x450，再调整相应的代码
 
 ## 降低训练标准
 
 1. 默认在作弊模式下训练
 2. 目标是苇名弦一郎前两阶段（第三阶段与前两阶段差异较大，对训练不友好）
+
+[训练历史](https://github.com/ricagj/pysekiro/blob/main/train_history.ipynb)
 
 ## 快速开始
 
