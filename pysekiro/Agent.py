@@ -24,16 +24,12 @@ class RewardSystem:
 
             self.next_status = next_status
 
-            # 计算方法：求和[(下一个的状态 - 当前的状态) * 各自的正负强化权重]
+            # 计算方法：(下一个的状态 - 当前的状态) * 各自的正负强化权重
 
             s1 = min(0, self.next_status[0] - self.cur_status[0]) *  1    # 自身生命，不计增加
             t1 = min(0, self.next_status[2] - self.cur_status[2]) * -1    # 目标生命，不计增加
-            
-            s2 = self.next_status[1] - self.cur_status[1]    # 自身架势
-            s2 = s2 * -1 if abs(s2) < 100 else 0
-
-            t2 = self.next_status[3] - self.cur_status[3]    # 目标架势
-            t2 = t2 *  1 if abs(s2) < 200 else 0
+            s2 = max(0, self.next_status[1] - self.cur_status[1]) * -1    # 自身架势，不计减少
+            t2 = max(0, self.next_status[3] - self.cur_status[3]) *  1    # 目标架势，不计减少
 
             reward = s1 + s2 + t1 + t2
 
@@ -84,7 +80,7 @@ class DQNReplayer:
 class Sekiro_Agent:
     def __init__(
         self,
-        width
+        width,
         height,
         frame_count,
         n_action,
@@ -103,7 +99,7 @@ class Sekiro_Agent:
         self.epsilon = 1.0           # 初始探索率
         self.min_epsilon = 0.4       # 最终探索率
         self.epsilon_step = 3000    # 到达最终探索率前的步数
-        self.epsilon_decrease_rate = (self.epsilon - self.min_epsilon) * self.epsilon_step    # 探索衰减率
+        self.epsilon_decrease_rate = (self.epsilon - self.min_epsilon) / self.epsilon_step    # 探索衰减率
 
         self.replay_memory_size = 20000               # 记忆容量
         self.replay_start_size = self.epsilon_step    # 开始经验回放时存储的记忆量，到达最终探索率后才开始
@@ -146,12 +142,15 @@ class Sekiro_Agent:
             if self.epsilon > self.min_epsilon:
                 self.epsilon -= self.epsilon_decrease_rate    # 逐渐减小探索参数, 降低行为的随机性
 
-            q_values = np.random.rand(self.n_action)
+            q_values = np.random.rand(self.outputs)
+            self.who_play = '随机探索'
 
         # train = False 直接进入这里
         else:
             observation = observation.reshape(-1, self.width, self.height, self.frame_count)
             q_values = self.evaluate_net.predict(observation)[0]
+            self.who_play = '模型预测'
+
 
         action = np.argmax(q_values)
 

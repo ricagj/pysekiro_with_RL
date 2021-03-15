@@ -1,6 +1,10 @@
 import os
 
 import tensorflow as tf
+gpus = tf.config.experimental.list_physical_devices("GPU")
+if gpus:
+    tf.config.experimental.set_memory_growth(gpus[0], True)
+    print(tf.config.experimental.get_device_details(gpus[0])['device_name'])
 
 def MODEL(width, height, frame_count, outputs, lr, load_weights_path=None):
 
