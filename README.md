@@ -4,53 +4,22 @@
 
 ![demo.jpg](https://raw.githubusercontent.com/ricagj/pysekiro/main/imgs/adjustment_02.png)  
 
+# **正在调试**
+
 ## 最新说明 
-
-#### 准备更新
-
-在目前的代码中（[train.py](https://github.com/ricagj/pysekiro_with_RL/blob/main/pysekiro/train.py)）  
-~~~python
-def getSARS_(self):
-
-    # 第二个轮回开始
-    #   1. 原本的 新状态S' 变成 状态S
-    #   2. 由 状态S 选取 动作A
-    #   3. 观测并获取 新状态S'，并计算 奖励R
-    # 进入下一个轮回
-
-    self.action = self.sekiro_agent.choose_action(self.screen, self.train)    # 选取 动作A
-
-    # 延迟观测新状态，为了能够观测到状态变化
-    time.sleep(0.1)
-
-    next_screen = get_screen()    # 观测 新状态
-    status = get_status(next_screen)
-    self.status_info = status[4]    # 状态信息
-    
-    self.reward = self.sekiro_agent.reward_system.get_reward(status[:4], self.action)    # 计算 奖励R
-    self.next_screen = cv2.resize(roi(next_screen, x, x_w, y, y_h), (WIDTH, HEIGHT))    # 获取 新状态S'
-
-    self.learn()
-
-    # ----- 下一个轮回 -----
-
-    # 保证 状态S 和 新状态S' 连续
-    self.screen = self.next_screen    # 状态S
-~~~
-**获取 状态S 动作A 奖励R 新状态S' 时，当前数据的新状态S'就是下一个数据的状态S，这样的话，存储经验时每条经验之间的状态都是连续的**
-~~~python
-# ----- 下一个轮回 -----
-
-# 保证 状态S 和 新状态S' 连续
-self.screen = self.next_screen    # 状态S
-~~~
-但是，我想了一下发现这不是必要的，因为经验回放会打乱数据的相关性，那这么做除了少调用一次抓取屏幕的函数以为就没什么用了。  
-而且有一个很大的问题：下一轮回动作A的选取时用到的状态不是最新的，而是它的上一个轮回的新状态，可能会出现它的反应慢半拍的情况。  
-这个问题很好解决，在选取动作前再调用一次抓取屏幕就好了，这样就保证动作读取时所依据的状态是最新的。  
 
 #### 最新更新
 
-更新读取架势的算法，采用Canny边缘检测 
+1. 换了个相对简单的模型（自己瞎搞的，那些nb的模型我电脑根本带不动）。
+2. 删除对选择攻击和防御时附加的额外奖励。
+3. 最终探索率调至0.4，探索衰减率由原来的指数衰减更换为线性衰减。
+4. 调整各网络的更新频率
+5. 上调学习率 0.001 -> 0.01
+6. 采用多线程不断的抓取屏幕获取信息
+
+#### 最近更新
+
+1. 更新读取架势的算法，采用Canny边缘检测 
 [新旧效果对比](https://github.com/ricagj/pysekiro/blob/main/TEST_get_status.ipynb)  
 基本上能稳定读取架势了，但是仍然存在特殊情况。比如Boss生命值为零时，这个时候攻击他，他的架势会瞬间积满，观察Boss的架势条时，会发现有瞬间的红光一闪而过，而且范围超过了架势条的范围。由于检测的范围内像素点全部为255，所以无法找到边缘，输出的结果本来应该是满架势值但实际输出为0。
 

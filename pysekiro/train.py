@@ -1,4 +1,5 @@
 import os
+import threading
 import time
 
 import cv2
@@ -14,14 +15,15 @@ from pysekiro.img_tools.grab_screen import get_screen
 
 # ---*---
 
-RESIZE_WIDTH   = 50
-RESIZE_HEIGHT  = 50
-FRAME_COUNT    = 3
+WIDTH   = 300
+HEIGHT  = 300
+FRAME_COUNT = 3
+n_action = 5
 
-x   = 390
-x_w = 890
-y   = 110
-y_h = 610
+x   = 250
+x_w = 550
+y   = 75
+y_h = 375
 
 # ---*---
 
@@ -34,6 +36,11 @@ class Play_Sekiro:
         save_memory_path=None,     # 指定记忆保存的路径。默认为None，不保存。
     ):
         self.sekiro_agent = Sekiro_Agent(
+            width = WIDTH,
+            height = HEIGHT,
+            frame_count = FRAME_COUNT,
+            n_action = n_action,
+            learning_rate = 0.01,
             load_weights_path = load_weights_path,
             save_weights_path = save_weights_path
         )
@@ -48,25 +55,34 @@ class Play_Sekiro:
 
         self.step = 1    # 计步器
 
+        self.prepare()    # 初次准备
+
+        self.Continue = True
+        self.thread = threading.Thread(target=self.get_screen_continuously)
+        self.thread.start()    # 开始不断的抓取屏幕获取信息
+
     def prepare(self):
         # 初次训练需要加载GPU，这个过程有那么一点点长，初次训练之后就不会加载那么长时间了，所以这里先训练一次，避免影响到后面正式的训练
         self.sekiro_agent.evaluate_net.fit(
-            np.zeros((RESIZE_HEIGHT, RESIZE_WIDTH, FRAME_COUNT)).reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT),
+            np.zeros((HEIGHT, WIDTH, FRAME_COUNT)).reshape(-1, WIDTH, HEIGHT, FRAME_COUNT),
             np.array([[0, 0, 0, 0, 1]]),
             verbose=0
         )
 
         # 记忆存在就读取记忆
         if self.load_memory_path != None:
+            
             if os.path.exists(self.load_memory_path):
+                
                 self.sekiro_agent.replayer.memory = pd.read_json(self.load_memory_path)
+                print('Load ' + self.load_memory_path)
+
                 i = self.sekiro_agent.replayer.memory.action.count()
                 self.sekiro_agent.replayer.i = i
                 self.sekiro_agent.replayer.count = i
-                print('Load ' + self.load_memory_path)
 
                 # 恢复探索率
-                self.sekiro_agent.epsilon *= self.sekiro_agent.epsilon_decrease_rate ** i
+                self.sekiro_agent.epsilon -= self.sekiro_agent.epsilon_decrease_rate * i
 
                 # 恢复步数，但去除零头，加1是为了避免刚进入就马上训练
                 self.sekiro_agent.step = i // self.sekiro_agent.target_network_update_freq * self.sekiro_agent.target_network_update_freq + 1
@@ -74,52 +90,19 @@ class Play_Sekiro:
             else:
                 print('No memory to load.')
 
-    def learn(self):
-        if self.train:
-            if not (np.sum(self.screen == 0) > 1875):    # 50 * 50 * 3 / 4 = 1875 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停存储数据
-
-                # ----- store -----
-                # 集齐 (S, A, R, S')后开始存储
-                self.sekiro_agent.replayer.store(
-                    self.screen,
-                    self.action,
-                    self.reward,
-                    self.next_screen
-                )    # 存储经验
-
-                # ----- learn -----
-                self.sekiro_agent.learn()
-
-    def getSARS_(self):
-
-        # 第二个轮回开始
-        #   1. 原本的 新状态S' 变成 状态S
-        #   2. 由 状态S 选取 动作A
-        #   3. 观测并获取 新状态S'，并计算 奖励R
-        # 进入下一个轮回
-
-        self.action = self.sekiro_agent.choose_action(self.screen, self.train)    # 选取 动作A
-
-        # 延迟观测新状态，为了能够观测到状态变化
-        time.sleep(0.1)
-
-        next_screen = get_screen()    # 观测 新状态
-        status = get_status(next_screen)
-        self.status_info = status[4]    # 状态信息
+    def get_screen_continuously(self):
         
-        self.reward = self.sekiro_agent.reward_system.get_reward(status[:4], self.action)    # 计算 奖励R
-        self.next_screen = cv2.resize(roi(next_screen, x, x_w, y, y_h), (RESIZE_WIDTH, RESIZE_HEIGHT))    # 获取 新状态S'
-
-        self.learn()
-
-        # ----- 下一个轮回 -----
-
-        # 保证 状态S 和 新状态S' 连续
-        self.screen = self.next_screen    # 状态S
+        while self.Continue:
+            
+            self.screen = get_screen()
+            
+            status = get_status(self.screen)
+            self.status = status[:4]        # 生命架势状态
+            self.status_info = status[4]    # 生命架势状态信息
+            
+            self.observation = cv2.resize(roi(self.screen, x, x_w, y, y_h), (WIDTH, HEIGHT))
 
     def run(self):
-
-        self.prepare()
 
         paused = True
         print("Ready!")
@@ -127,17 +110,14 @@ class Play_Sekiro:
         while True:
 
             self.last_time = time.time()
+            
             keys = key_check()
+            
             if paused:
                 if 'T' in keys:
+                    self.sekiro_agent.reward_system.cur_status = self.status[:4]    # 设置初始状态
                     paused = False
                     print('\nStarting!')
-
-                    screen = get_screen()
-                    status = get_status(screen)
-                    self.status_info = status[4]    # 状态信息
-                    self.sekiro_agent.reward_system.cur_status = status[:4]    # 设置初始状态
-                    self.screen = cv2.resize(roi(screen, x, x_w, y, y_h), (RESIZE_WIDTH, RESIZE_HEIGHT))    # 首个 状态S
 
             else:    # 按 'T' 之后，马上进入下一轮就进入这里
 
@@ -145,14 +125,10 @@ class Play_Sekiro:
 
                 self.getSARS_()
 
-                # 控制一个回合的周期为0.25秒（包含延迟和程序本身执行所需时间）
-                t = 0.248-(time.time()-self.last_time)
-                if t > 0:
-                    time.sleep(t)
-
-                print(f'\rstep:{self.step:>6}. Loop took {round(time.time()-self.last_time, 3):>5} seconds. action {self.action:>1}, {self.status_info}, total_reward:{self.sekiro_agent.reward_system.total_reward:>10.3f}, memory:{self.sekiro_agent.replayer.count:7>}.', end='')
-
+                print(f'\rstep: {self.step:>6} . Loop took {round(time.time()-self.last_time, 3):>5} seconds. action {self.action:>1} , {self.status_info} , total_reward: {self.sekiro_agent.reward_system.total_reward:>10.3f} , memory: {self.sekiro_agent.replayer.count:7>} .', end='')
+ 
                 if 'P' in keys:
+                    self.Continue = False    # 结束抓取屏幕获取信息
                     if self.train:
                         self.sekiro_agent.save_evaluate_network()    # 学习完毕，保存网络权重
                         if self.save_memory_path:
@@ -161,3 +137,38 @@ class Play_Sekiro:
                     break
 
         print('\nDone!')
+
+    def getSARS_(self):
+
+        # 1. 获取 状态S
+        # 2. 由 状态S 选取 动作A
+        # 3. 等待一段时间
+        # 5. 获取 新状态S'，并计算 奖励R
+
+        observation = self.observation    # 状态S
+
+        action = self.action = self.sekiro_agent.choose_action(observation, self.train)    # 选取 动作A
+
+        # 延迟观测新状态，为了能够观测到状态变化
+        time.sleep(0.2)
+
+        reward = self.sekiro_agent.reward_system.get_reward(self.status)    # 计算 奖励R
+
+        next_observation = self.observation    # 新状态S'
+
+        self.learn(observation, action, reward, next_observation)
+
+    def learn(self, observation, action, reward, next_observation):
+        if self.train:
+            if not (np.sum(observation == 0) > int(WIDTH * HEIGHT * FRAME_COUNT / 8)):    # 当图像有1/8变成黑色（像素值为0）的时候停止暂停存储数据
+
+                # ----- store -----
+                self.sekiro_agent.replayer.store(
+                    observation,
+                    action,
+                    reward,
+                    next_observation
+                )    # 存储经验
+
+                # ----- learn -----
+                self.sekiro_agent.learn()
