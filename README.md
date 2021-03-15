@@ -2,13 +2,16 @@
 
 #### If you need the English version, please send an issue.  
 
-![demo.jpg](https://github.com/ricagj/pysekiro_with_RL/blob/main/adjustment_02.png?raw=true)  
+![demo.jpg](https://raw.githubusercontent.com/ricagj/pysekiro/main/imgs/adjustment_02.png)  
 
 ## 最新说明 
 
 #### 本次更新
 
-更新游戏设置，分辨率由 1280x720 变成800x450，再调整相应的代码
+更新读取架势的算法，采用Canny边缘检测 
+[新旧效果对比](https://github.com/ricagj/pysekiro/blob/main/TEST_get_status.ipynb)  
+存在问题：无法读取架势积累满的状态  
+解决方案：延长架势在x轴的读取范围  
 
 ## 降低训练标准
 
