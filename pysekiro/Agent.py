@@ -19,27 +19,23 @@ class RewardSystem:
         self.reward_history = list()    # reward 的积累过程
 
     # 获取奖励
-    def get_reward(self, next_status, action):
+    def get_reward(self, next_status):
         if sum(next_status) != 0:
 
             self.next_status = next_status
 
             # 计算方法：求和[(下一个的状态 - 当前的状态) * 各自的正负强化权重]
 
-            s1 = min(0, self.next_status[0] - self.cur_status[0])    # 自身生命，不计增加
-            t1 = min(0, self.next_status[2] - self.cur_status[2])    # 目标生命，不计增加
+            s1 = min(0, self.next_status[0] - self.cur_status[0]) *  1    # 自身生命，不计增加
+            t1 = min(0, self.next_status[2] - self.cur_status[2]) * -1    # 目标生命，不计增加
             
             s2 = self.next_status[1] - self.cur_status[1]    # 自身架势
-            s2 = s2 if abs(s2) < 100 else 0
+            s2 = s2 * -1 if abs(s2) < 100 else 0
 
             t2 = self.next_status[3] - self.cur_status[3]    # 目标架势
-            t2 = t2 if abs(s2) < 200 else 0
+            t2 = t2 *  1 if abs(s2) < 200 else 0
 
-            if t1 != 0 or t2 != 0:
-                extra_bonus = 0.5 if action == 0 or action == 1 else 0
-            else:
-                extra_bonus = 0
-            reward = s1 * 0.1 + s2 * -0.1 + t1 * -0.1 + t2 *  0.1 + extra_bonus
+            reward = s1 + s2 + t1 + t2
 
         else:
             reward = 0
@@ -68,7 +64,7 @@ class DQNReplayer:
     def __init__(self, capacity):
         self.memory = pd.DataFrame(
             index=range(capacity),
-            columns=['screen', 'action', 'reward', 'next_screen']
+            columns=['observation', 'action', 'reward', 'next_observation']
         )
         self.i = 0
         self.count = 0
@@ -85,32 +81,36 @@ class DQNReplayer:
 
 # ---*---
 
-RESIZE_WIDTH   = 50
-RESIZE_HEIGHT  = 50
-FRAME_COUNT    = 3
-
-# ---*---
-
 class Sekiro_Agent:
     def __init__(
         self,
+        width
+        height,
+        frame_count,
+        n_action,
+        learning_rate,
         load_weights_path = None,
         save_weights_path = None
     ):
-        self.n_action = 5    # 动作数量
-        
-        self.gamma = 0.99    # 奖励衰减
+        self.width = width
+        self.height = height
+        self.frame_count = frame_count
+        self.outputs = n_action    # 动作数量
+        self.lr = learning_rate    # 学习率
 
-        self.replay_memory_size = 22500     # 记忆容量
-        self.replay_start_size  = 500       # 开始经验回放时存储的记忆量
-        self.batch_size = 64                # 样本抽取数量
+        self.gamma = 0.90    # 奖励衰减
 
-        self.epsilon = 1.0                    # 初始探索率
-        self.epsilon_decrease_rate = 0.9988   # 探索衰减率
-        self.min_epsilon = 0.3                # 最终探索率
+        self.epsilon = 1.0           # 初始探索率
+        self.min_epsilon = 0.4       # 最终探索率
+        self.epsilon_step = 3000    # 到达最终探索率前的步数
+        self.epsilon_decrease_rate = (self.epsilon - self.min_epsilon) * self.epsilon_step    # 探索衰减率
 
-        self.update_freq = 100                   # 训练评估网络的频率，约20秒
-        self.target_network_update_freq = 300    # 更新目标网络的频率，约60秒
+        self.replay_memory_size = 20000               # 记忆容量
+        self.replay_start_size = self.epsilon_step    # 开始经验回放时存储的记忆量，到达最终探索率后才开始
+        self.batch_size = 256                         # 样本抽取数量
+
+        self.update_freq = 200                   # 训练评估网络的频率
+        self.target_network_update_freq = 1000    # 更新目标网络的频率
 
         self.load_weights_path = load_weights_path    # 指定模型权重参数加载的路径。默认为None，不加载。
         self.save_weights_path = save_weights_path    # 指定模型权重参数保存的路径。默认为None，不保存。注：默认也是测试模式，若设置该参数，就会开启训练模式
@@ -125,16 +125,17 @@ class Sekiro_Agent:
     # 评估网络和目标网络的构建方法
     def build_network(self):
         model = MODEL(
-            width = RESIZE_WIDTH,
-            height = RESIZE_HEIGHT,
-            frame_count = FRAME_COUNT,
-            outputs = self.n_action,
+            width = self.width,
+            height = self.height,
+            frame_count = self.frame_count,
+            outputs = self.outputs,
+            lr = self.lr,
             load_weights_path = self.load_weights_path
         )
         return model
 
     # 行为选择与执行方法
-    def choose_action(self, screen, train):
+    def choose_action(self, observation, train):
         if train:
             r = np.random.rand()
         else:
@@ -143,15 +144,14 @@ class Sekiro_Agent:
         # train = True 开启探索模式
         if r < self.epsilon:
             if self.epsilon > self.min_epsilon:
-                self.epsilon *= self.epsilon_decrease_rate    # 逐渐减小探索参数, 降低行为的随机性
-            else:
-                self.epsilon = self.min_epsilon
-            q_values = np.random.rand(self.n_action) * np.array([1.8, 1.5, 1.2, 0.8, 1])
+                self.epsilon -= self.epsilon_decrease_rate    # 逐渐减小探索参数, 降低行为的随机性
+
+            q_values = np.random.rand(self.n_action)
 
         # train = False 直接进入这里
         else:
-            screen = screen.reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
-            q_values = self.evaluate_net.predict(screen)[0]
+            observation = observation.reshape(-1, self.width, self.height, self.frame_count)
+            q_values = self.evaluate_net.predict(observation)[0]
 
         action = np.argmax(q_values)
 
@@ -170,18 +170,18 @@ class Sekiro_Agent:
                 self.update_target_network() 
 
             # 经验回放
-            screens, actions, rewards, next_screens = self.replayer.sample(self.batch_size)
+            observations, actions, rewards, next_observations = self.replayer.sample(self.batch_size)
 
-            screens = screens.reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
+            observations = observations.reshape(-1, self.width, self.height, self.frame_count)
             actions = actions.astype(np.int8)
-            next_screens = next_screens.reshape(-1, RESIZE_WIDTH, RESIZE_HEIGHT, FRAME_COUNT)
+            next_observations = next_observations.reshape(-1, self.width, self.height, self.frame_count)
 
             # 计算回报的估计值
-            q_next = self.target_net.predict(next_screens)
-            q_target = self.evaluate_net.predict(screens)
+            q_next = self.target_net.predict(next_observations)
+            q_target = self.evaluate_net.predict(observations)
             q_target[range(self.batch_size), actions] = rewards + self.gamma * q_next.max(axis=-1)
 
-            self.evaluate_net.fit(screens, q_target, verbose=0)
+            self.evaluate_net.fit(observations, q_target, verbose=0)
 
             self.save_evaluate_network()
 

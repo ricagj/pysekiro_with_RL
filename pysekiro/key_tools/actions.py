@@ -22,7 +22,7 @@ dk = {
 
 # 设置动作本身执行所需的时间
 # 注，为了数据的稳定性，延时时间要统一
-delay = 0.1
+delay = 0.01
 
 # ---*---
 
@@ -46,12 +46,12 @@ delay = 0.1
 #     time.sleep(delay)
 #     ReleaseKey(dk['D'])
 
-def Step_Dodge():
+def Step_Dodge():    # 0.605
     PressKey(dk['LSHIFT'])
     time.sleep(delay)
     ReleaseKey(dk['LSHIFT'])
 
-def Jump():
+def Jump():    # 1.101
     PressKey(dk['SPACE'])
     time.sleep(delay)
     ReleaseKey(dk['SPACE'])
@@ -63,12 +63,12 @@ def Jump():
 #     ReleaseKey(dk['Y'])
 
 
-def Attack():
+def Attack():    # 0.640
     PressKey(dk['J'])
     time.sleep(delay)
     ReleaseKey(dk['J'])
 
-def Deflect():
+def Deflect():    # 0.199
     PressKey(dk['K'])
     time.sleep(delay)
     ReleaseKey(dk['K'])
