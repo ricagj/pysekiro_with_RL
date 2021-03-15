@@ -15,8 +15,8 @@ from pysekiro.img_tools.grab_screen import get_screen
 
 # ---*---
 
-WIDTH   = 300
-HEIGHT  = 300
+WIDTH   = 100
+HEIGHT  = 100
 FRAME_COUNT = 3
 n_action = 5
 
@@ -125,7 +125,7 @@ class Play_Sekiro:
 
                 self.getSARS_()
 
-                print(f'\rstep: {self.step:>6} . Loop took {round(time.time()-self.last_time, 3):>5} seconds. action {self.action:>1} , {self.status_info} , total_reward: {self.sekiro_agent.reward_system.total_reward:>10.3f} , memory: {self.sekiro_agent.replayer.count:7>} .', end='')
+                print(f'\r {self.who_play:>4} , step: {self.step:>6} . Loop took {round(time.time()-self.last_time, 3):>5} seconds. action {self.action:>1} , {self.status_info} , total_reward: {self.sekiro_agent.reward_system.total_reward:>10.3f} , memory: {self.sekiro_agent.replayer.count:7>} .', end='')
  
                 if 'P' in keys:
                     self.Continue = False    # 结束抓取屏幕获取信息
