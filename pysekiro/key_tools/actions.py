@@ -1,7 +1,7 @@
-import threading
+# import threading
 import time
 
-from pysekiro.direct_keys import PressKey, ReleaseKey
+from pysekiro.key_tools.direct_keys import PressKey, ReleaseKey
 
 # ---*---
 
@@ -17,77 +17,64 @@ dk = {
     # 'Y' : 0x15,
 
     'J' : 0x24,
-    # 'LCONTROL' : 0x1D,
     'K' : 0x25,
-    # 'F' : 0x21,
-    'R' : 0x13,
 }
+
+# 设置动作本身执行所需的时间
+# 注，为了数据的稳定性，延时时间要统一
+delay = 0.01
 
 # ---*---
 
 # def Move_Forward():
 #     PressKey(dk['W'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['W'])
 
 # def Move_Back():
 #     PressKey(dk['S'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['S'])
 
 # def Move_Left():
 #     PressKey(dk['A'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['A'])
 
 # def Move_Right():
 #     PressKey(dk['D'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['D'])
 
-def Step_Dodge():
+def Step_Dodge():    # 0.605
     PressKey(dk['LSHIFT'])
-    time.sleep(0.1)
+    time.sleep(delay)
     ReleaseKey(dk['LSHIFT'])
 
-def Jump():
+def Jump():    # 1.101
     PressKey(dk['SPACE'])
-    time.sleep(0.1)
+    time.sleep(delay)
     ReleaseKey(dk['SPACE'])
 
 
 # def Lock_On():
 #     PressKey(dk['Y'])
-#     time.sleep(0.1)
+#     time.sleep(delay)
 #     ReleaseKey(dk['Y'])
 
 
-def Attack():
+def Attack():    # 0.640
     PressKey(dk['J'])
-    time.sleep(0.1)
+    time.sleep(delay)
     ReleaseKey(dk['J'])
 
-# def Use_Prosthetic_Tool():
-#     PressKey(dk['LCONTROL'])
-#     time.sleep(0.1)
-#     ReleaseKey(dk['LCONTROL'])
-
-def Deflect():
+def Deflect():    # 0.199
     PressKey(dk['K'])
-    time.sleep(0.1)
+    time.sleep(delay)
     ReleaseKey(dk['K'])
 
-# def Grappling_Hook():
-#     PressKey(dk['F'])
-#     time.sleep(0.1)
-#     ReleaseKey(dk['F'])
-
-# def Use_Item():
-#     PressKey(dk['R'])
-#     time.sleep(0.1)
-#     ReleaseKey(dk['R'])
-
 def NOKEY():
+    time.sleep(delay)
     ReleaseKey(dk['W'])
     ReleaseKey(dk['S'])
     ReleaseKey(dk['A'])
@@ -96,15 +83,11 @@ def NOKEY():
     ReleaseKey(dk['SPACE'])
     # ReleaseKey(dk['Y'])
     ReleaseKey(dk['J'])
-    # ReleaseKey(dk['LCONTROL'])
     ReleaseKey(dk['K'])
-    # ReleaseKey(dk['F'])
-    ReleaseKey(dk['R'])
 
 # ---*---
 
-# 根据 collect_data.py 中的 get_output()
-def act(action):
+def act(action=4, WS=2, AD=2):
     
     if   action == 0:
         act = Attack       # 攻击
@@ -114,19 +97,27 @@ def act(action):
         act = Step_Dodge   # 垫步
     elif action == 3:
         act = Jump         # 跳跃
-    elif action == 4:
-        act = NOKEY        # 无键
+    else:
+        act = NOKEY        # 无键, 无动作
+    
+    PressKey(dk['W'])
+    act()
+    ReleaseKey(dk['W'])
 
-    act_process = threading.Thread(target=act)
-    act_process.start()
+    # if   WS == 0:
+    #     ws = Move_Forward # 移动 前
+    # elif WS == 1:
+    #     ws = Move_Back    # 移动 后
+    # else:
+    #     ws = NOKEY        # 无键, 无动作
+    # ws_process = threading.Thread(target=ws)
+    # ws_process.start()
 
-# elif action == 5:
-#     act = Use_Item     # 使用道具    
-# elif action == 6:
-#     act = Move_Forward # 移动 前
-# elif action == 7:
-#     act = Move_Back    # 移动 后
-# elif action == 8:
-#     act = Move_Left    # 移动 左
-# elif action == 9:
-#     act = Move_Right   # 移动 右
+    # if   AD == 0:
+    #     ad = Move_Left    # 移动 左
+    # elif AD == 1:
+    #     ad = Move_Right   # 移动 右
+    # else:
+    #     ad = NOKEY        # 无键, 无动作
+    # ad_process = threading.Thread(target=ad)
+    # ad_process.start()

@@ -10,8 +10,8 @@ def grab_screen(region=None):
 
     if region:
             left,top,x2,y2 = region
-            width = x2 - left + 1
-            height = y2 - top + 1
+            width = x2 - left
+            height = y2 - top
     else:
         width = win32api.GetSystemMetrics(win32con.SM_CXVIRTUALSCREEN)
         height = win32api.GetSystemMetrics(win32con.SM_CYVIRTUALSCREEN)
@@ -40,16 +40,8 @@ def grab_screen(region=None):
 # ---*---
 
 # 游戏窗口大小
-GAME_WIDTH = 1280
-GAME_HEIGHT = 720
-
-# 标准窗口大小
-STANDARD_WIDTH = 480
-STANDARD_HEIGHT = 270
+GAME_WIDTH = 800
+GAME_HEIGHT = 450
 
 def get_screen():
-    # 屏幕捕获，并图像缩放
-    screen = grab_screen(region=(0, 30, GAME_WIDTH, GAME_HEIGHT+30))
-    screen = cv2.resize(screen, (STANDARD_WIDTH, STANDARD_HEIGHT))
-
-    return screen
+    return grab_screen(region=(0, 31, GAME_WIDTH, GAME_HEIGHT+31))    # 游戏最上面31像素是白色边框

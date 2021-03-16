@@ -4,8 +4,12 @@ import time
 import numpy as np
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
-from pysekiro.get_keys import key_check
-from pysekiro.grab_screen import get_screen
+from pysekiro.img_tools.grab_screen import get_screen
+from pysekiro.key_tools.get_keys import key_check
+
+WIDTH   = 100
+HEIGHT  = 100
+FRAME_COUNT = 3
 
 def get_output(keys):
 
@@ -80,15 +84,9 @@ class Data_collection:
                 self.step += 1
 
                 screen = get_screen()    # 获取屏幕图像
-                if not (np.sum(screen == 0) > 97200):    # 270 * 480 * 3 / 4 = 97200 ，当图像有1/4变成黑色（像素值为0）的时候停止暂停收集数据
+                if not (np.sum(screen == 0) > int(WIDTH * HEIGHT * FRAME_COUNT / 8)):    # 当图像有1/8变成黑色（像素值为0）的时候停止暂停存储数据
                     action_list = get_output(keys)    # 获取按键输出列表
                     self.dataset.append([screen, action_list])    # 图像和输出打包在一起，保证一一对应
-
-                # 降低数据采集的频率，周期为0.1秒
-                T = 0.1
-                t = 0.1-(time.time()-last_time)
-                if t > 0:
-                    time.sleep(t)
 
                 print(f'\rstep:{self.step:>4}. Loop took {round(time.time()-last_time, 3):>5} seconds.', end='')
 
