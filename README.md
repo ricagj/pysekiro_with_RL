@@ -1,60 +1,69 @@
-# 在《只狼：影逝二度》中用深度强化学习训练Agent
+## 在《只狼：影逝二度》中用深度强化学习训练Agent
 
-<p align="center">
-    <a href="https://github.com/ricagj/pysekiro_with_RL/blob/main/README_EN.md">English</a>
-    | 
-    <a>中文</a>
-</p>
+#### If you need the English version, please send an issue.  
 
-![demo.png](https://github.com/ricagj/pysekiro_with_RL/blob/main/demo.pngraw=true)  
+![demo.jpg](https://raw.githubusercontent.com/ricagj/pysekiro/main/imgs/adjustment_02.png)  
 
-# 注：接下来一个版本将会移除离线学习相关代码
+## 最新说明 
 
-# 快速开始
+#### 最新更新
+
+1. DEBUG
+2. 奖励设置。不计入生命增加的奖励（双方），不计入架势减少的奖励（双方）
+3. 再次下调训练的小目标：训练时给狼上BUFF（夜叉戮之降临）
+
+#### 最近更新
+
+1. 换了个相对简单的模型（自己瞎搞的，那些nb的模型我电脑根本带不动）。
+2. 删除对选择攻击和防御时附加的额外奖励。
+3. 最终探索率调至0.4，探索衰减率由原来的指数衰减更换为线性衰减。
+4. 调整各网络的更新频率
+5. 上调学习率 0.001 -> 0.01
+6. 采用多线程不断的抓取屏幕获取信息
+7. 更新读取架势的算法，采用Canny边缘检测 
+[新旧效果对比](https://github.com/ricagj/pysekiro/blob/main/TEST_get_status.ipynb)  
+基本上能稳定读取架势了，但是仍然存在特殊情况。比如Boss生命值为零时，这个时候攻击他，他的架势会瞬间积满，观察Boss的架势条时，会发现有瞬间的红光一闪而过，而且范围超过了架势条的范围。由于检测的范围内像素点全部为255，所以无法找到边缘，输出的结果本来应该是满架势值但实际输出为0。
+
+## 降低训练标准
+
+1. 默认在作弊模式下训练
+2. 全程夜叉戮之降临
+3. 目标是苇名弦一郎前两阶段（第三阶段与前两阶段差异较大，对训练不友好）
+
+[训练历史](https://github.com/ricagj/pysekiro/blob/main/train_history.ipynb)
+
+## 快速开始
 
 [快速开始](https://github.com/ricagj/pysekiro_with_RL/blob/main/Quick_start.ipynb)  
-[如何训练](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_is_it_trained.ipynb)  
 
-# 项目结构
+## 项目结构
 
 [了解项目基础部分是如何工作的](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)  
 
-- Data_quality (存放收集数据时记录的reward曲线)
-    - Genichiro_Ashina （苇名弦一郎）
-        - training_data-1.png （第一个战斗数据的reward曲线）
-- 
-- The_battle_memory
-    - Genichiro_Ashina （苇名弦一郎）
-        - training_data-1.npy （第一个战斗数据）
-- 
 - pysekiro
+    - img_tools
+        - \__init__.py
+            - adjustment.py (游戏窗口校准)
+            - get_status.py (状态获取)
+            - get_vertices.py (顶点位置获取)
+            - grab_screen.py (屏幕图像抓取)
+    - key_tools
+        - \__init__.py
+            - actions.py (动作控制)
+            - direct_keys.py (控制键盘的按键)
+            - get_keys.py (捕获键盘的按键)
     - \__init__.py
-    - 
-    - adjustment.py (游戏窗口校准)
-    - 
-    - collect_data.py (收集数据)
-    - 
     - Agent.py (DQN)
     - model.py （模型定义）
-    - 
-    - grab_screen.py (屏幕图像抓取)
-    - get_vertices.py (顶点位置获取)
-    - get_status.py (状态获取)
-    - 
-    - get_keys.py (捕获键盘的按键)
-    - direct_keys.py (控制键盘的按键)
-    - actions.py (动作控制)
-- 
-- learn_offline.py (离线学习)
-- learn_online.py (在线学习\测试模型)
+    - train.py (训练\测试模型)
 
-# 准备
+## 准备
 
-### 安装 Anaconda3
+#### 安装 Anaconda3
 
 https://www.anaconda.com/  
 
-### 创建虚拟环境和安装依赖
+#### 创建虚拟环境和安装依赖
 
 ~~~shell
 conda create -n pysekiro python=3.8
@@ -67,16 +76,7 @@ pip install tensorflow>=2.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
 conda install -c conda-forge jupyterlab
 ~~~
 
-# 存在的问题
-
-1. 本项目只是半成品，目前我未能得到一个令我满意的模型。
-2. 这里的Agent并不是游戏中的被操作对象，而是像我们一样的玩家，它也是“通过键盘”来操作被操作对象的。我们在操作的时候，不会时时刻刻都在按键的，而是判断时机，然后在合适的时候按合适的键的。而它不一样，它是每隔零点几秒就必须做出决策然后“按键”。在这个存在后摇的游戏中，有更快的反应固然是好事，但同时也因为这而导致后摇期间的决策是无效的，这些无效的决策也被学习到了。这是今后要解决的难点之一。
-3. 还有一个比较麻烦的问题，就是动作空间虽然是离散的，但是动作本身是连续的。最典型的就是长按短按，还有移动。这些无法被模型所学习，也无法被模型所执行（动作控制相关代码的锅）。
-4. 当前最重要也最难解决的一个问题应该是动作和奖励不能很好的对应上，在强化学习领域可是大忌。原因跟第2点差不多，不过这次是因为前摇。这个问题我通过控制状态获取频率来试图解决，确实取得了一定成果（一帧一帧观察），但仍然有部分不能完全对应上。这也是今后要解决的难点之一。
-5. 离线学习，其实是我期望模型能够利用我收集的数据集来学习以获得基本的对战能力，但目前的学习效果非常差。2020-3-10提交的代码里我保留了训练过程，从训练过程来看，积累了非常多的奖励，按道理应该变得非常厉害了。但事实上，我测试的时候发现，它只学会了苇名抖刀术。。。
-6. 奖励设置的问题。奖励也是强化学习一个很重要的问题，它直接影响训练效果。这个还在探索中，所以这部分代码变动比较频繁。
-
-# 参考
+## 参考
 https://github.com/Sentdex/pygta5  
 https://github.com/analoganddigital/sekiro_tensorflow  
 https://github.com/analoganddigital/DQN_play_sekiro  

@@ -12,16 +12,11 @@ vk = {
     'SPACE'  : 0x20,
 
     'J' : 0x4A,
-    # 'LCONTROL' : 0xA2,
     'K' : 0x4B,
-    #'F' : 0x46,
-    'R' : 0x52,
 
     'T' : 0x54,
     'P' : 0x50
 }
-
-keyList = ['\b']
 
 def key_check():
     keys = []
