@@ -6,19 +6,16 @@
 
 ## 最新说明 
 
-新增子项目“只狼-视频行为识别”，暂停更新主项目，并且部分代码将转移到子项目。
-
-#### 最近更新
-
-[架势读取](https://github.com/ricagj/pysekiro/blob/main/TEST_get_status.ipynb)  
+这两天了解了下视频行为识别，然后试着搭了个P3D模型，  
+![P3D](https://pic4.zhimg.com/v2-cb8f22fc6ae9965ed09a9c85e6453d77_r.jpg)  
+[论文地址](https://arxiv.org/abs/1711.10305)
+结果发现约5000w个参数。。。对不起，我的**GTX970m**说我不配用这个模型。
 
 ## 降低训练标准
 
 1. 默认在作弊模式下训练
 2. 全程夜叉戮之降临
 3. 目标是苇名弦一郎前两阶段（第三阶段与前两阶段差异较大，对训练不友好）
-
-[训练历史](https://github.com/ricagj/pysekiro/blob/main/train_history.ipynb)
 
 ## 快速开始
 
@@ -31,15 +28,15 @@
 - pysekiro
     - img_tools
         - \__init__.py
-            - adjustment.py (游戏窗口校准)
-            - get_status.py (状态获取)
-            - get_vertices.py (顶点位置获取)
-            - grab_screen.py (屏幕图像抓取)
+        - adjustment.py (游戏窗口校准)
+        - get_status.py (状态获取)
+        - get_vertices.py (顶点位置获取)
+        - grab_screen.py (屏幕图像抓取)
     - key_tools
         - \__init__.py
-            - actions.py (动作控制)
-            - direct_keys.py (控制键盘的按键)
-            - get_keys.py (捕获键盘的按键)
+        - actions.py (动作控制)
+        - direct_keys.py (控制键盘的按键)
+        - get_keys.py (捕获键盘的按键)
     - \__init__.py
     - Agent.py (DQN)
     - model.py （模型定义）
