@@ -14,7 +14,7 @@ dk = {
     'LSHIFT' : 0x2A,
     'SPACE'  : 0x39,
 
-    # 'Y' : 0x15,
+    'Y' : 0x15,
 
     'J' : 0x24,
     'K' : 0x25,
@@ -57,10 +57,10 @@ def Jump():    # 1.101
     ReleaseKey(dk['SPACE'])
 
 
-# def Lock_On():
-#     PressKey(dk['Y'])
-#     time.sleep(delay)
-#     ReleaseKey(dk['Y'])
+def Lock_On():
+    PressKey(dk['Y'])
+    time.sleep(delay)
+    ReleaseKey(dk['Y'])
 
 
 def Attack():    # 0.640
@@ -81,7 +81,7 @@ def NOKEY():
     ReleaseKey(dk['D'])
     ReleaseKey(dk['LSHIFT'])
     ReleaseKey(dk['SPACE'])
-    # ReleaseKey(dk['Y'])
+    ReleaseKey(dk['Y'])
     ReleaseKey(dk['J'])
     ReleaseKey(dk['K'])
 

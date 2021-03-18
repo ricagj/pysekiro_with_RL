@@ -20,7 +20,7 @@ vk = {
 
 def key_check():
     keys = []
-    for key in ['W', 'S', 'A', 'D', 'LSHIFT', 'SPACE', 'J', 'K', 'R', 'T', 'P']:
+    for key in ['LSHIFT', 'SPACE', 'J', 'K', 'T', 'P']:    # 'W', 'S', 'A', 'D', 
         if wapi.GetAsyncKeyState(vk[key]):
             keys.append(key)
     return keys
