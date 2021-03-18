@@ -8,8 +8,44 @@
 
 这两天了解了下视频行为识别，然后试着搭了个P3D模型，  
 ![P3D](https://pic4.zhimg.com/v2-cb8f22fc6ae9965ed09a9c85e6453d77_r.jpg)  
-[论文地址](https://arxiv.org/abs/1711.10305)
-结果发现约5000w个参数。。。对不起，我的**GTX970m**说我不配用这个模型。
+[论文地址](https://arxiv.org/abs/1711.10305)  
+~~结果发现约5000w个参数。。。对不起，我的**GTX970m**说我不配用这个模型。~~  
+对不起，是我蠢，把池化层给忘记了
+
+## P3D 代码实现
+
+~~~python
+def P3D_A(input_tensor, out_dim):
+    conv_1 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=tf.nn.relu)(input_tensor)
+    conv_2 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 3, 3), padding='same', activation=tf.nn.relu)(conv_1)
+    conv_3 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(3, 1, 1), padding='same', activation=tf.nn.relu)(conv_2)
+    conv_4 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=None)(conv_3)
+    out    = tf.keras.layers.Add()([input_tensor, conv_4])
+    out    = tf.nn.relu(out)
+    return out
+
+def P3D_B(input_tensor, out_dim):
+    conv_1 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=tf.nn.relu)(input_tensor)
+    conv_2 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 3, 3), padding='same', activation=tf.nn.relu)(conv_1)
+    conv_3 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(3, 1, 1), padding='same', activation=None)(conv_1)
+    add_1  = tf.keras.layers.Add()([conv_2, conv_3])
+    add_1  = tf.nn.relu(add_1)
+    conv_4 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=None)(add_1)
+    out    = tf.keras.layers.Add()([input_tensor, conv_4])
+    out    = tf.nn.relu(out)
+    return out
+
+def P3D_C(input_tensor, out_dim):
+    conv_1 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=tf.nn.relu)(input_tensor)
+    conv_2 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 3, 3), padding='same', activation=tf.nn.relu)(conv_1)
+    conv_3 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(3, 1, 1), padding='same', activation=None)(conv_2)
+    add_1  = tf.keras.layers.Add()([conv_2, conv_3])
+    add_1  = tf.nn.relu(add_1)
+    conv_4 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=None)(add_1)
+    out    = tf.keras.layers.Add()([input_tensor, conv_4])
+    out    = tf.nn.relu(out)
+    return out
+~~~
 
 ## 降低训练标准
 
