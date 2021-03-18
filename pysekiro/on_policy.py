@@ -15,9 +15,9 @@ from pysekiro.img_tools.grab_screen import get_screen
 
 # ---*---
 
-WIDTH   = 100
-HEIGHT  = 100
-FRAME_COUNT = 3
+WIDTH   = 300
+HEIGHT  = 300
+FRAME_COUNT = 1
 n_action = 5
 
 x   = 250

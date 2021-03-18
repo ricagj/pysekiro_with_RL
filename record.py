@@ -49,16 +49,17 @@ class Record:
                     time.sleep(1)
                     print('Continuing!')
             else:
-                if 'T' in keys:
-                    paused = True
-                    time.sleep(1)
-                    print('Pausing!')
+                # if 'T' in keys:
+                #     paused = True
+                #     time.sleep(1)
+                #     print('Pausing!')
                 
                 if self.mode == 'game':
                     screen = get_screen()
                 else:
                     screen = get_full_screen()
                 self.video.write(screen)
+                
                 t = 1/self.fps - (time.time() - last_time)
                 if t > 0:
                     time.sleep(t)
@@ -67,7 +68,7 @@ class Record:
             if 'P' in keys:    # 结束
                 self.video.release()
                 cv2.destroyAllWindows()
-                print('Done!')
+                print('\nDone!')
                 break
 
 if __name__ == '__main__':

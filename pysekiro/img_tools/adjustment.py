@@ -1,8 +1,14 @@
 import cv2
 
 from pysekiro.img_tools.get_status import get_status
+from pysekiro.img_tools.get_vertices import roi
 from pysekiro.img_tools.grab_screen import get_screen
 from pysekiro.key_tools.get_keys import key_check
+
+x   = 200
+x_w = 600
+y   = 25
+y_h = 425
 
 def main():
 
@@ -22,6 +28,8 @@ def main():
             status_info = get_status(screen)[4]    # 显示状态信息
             print('\r' + status_info, end='')
 
+            cv2.imshow('roi', roi(screen, x, x_w, y, y_h))
+
             # 校准线
             screen[409:, [48, 49, 304, 305], :] = 255    # 自身生命
 
@@ -36,7 +44,7 @@ def main():
             screen[:29, 401, :] = 255    # 目标架势中线
 
             cv2.imshow('screen', screen)
-            cv2.waitKey(100)
+            cv2.waitKey(1)
 
             if 'P' in keys:    # 结束
                 cv2.destroyAllWindows()
