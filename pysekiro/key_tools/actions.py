@@ -20,8 +20,7 @@ dk = {
     'K' : 0x25,
 }
 
-# 设置动作本身执行所需的时间
-# 注，为了数据的稳定性，延时时间要统一
+# 按键其实不需要很多时间
 delay = 0.01
 
 # ---*---
@@ -57,10 +56,10 @@ def Jump():    # 1.101
     ReleaseKey(dk['SPACE'])
 
 
-def Lock_On():
-    PressKey(dk['Y'])
-    time.sleep(delay)
-    ReleaseKey(dk['Y'])
+# def Lock_On():
+#     PressKey(dk['Y'])
+#     time.sleep(delay)
+#     ReleaseKey(dk['Y'])
 
 
 def Attack():    # 0.640
@@ -75,13 +74,13 @@ def Deflect():    # 0.199
 
 def NOKEY():
     time.sleep(delay)
-    ReleaseKey(dk['W'])
-    ReleaseKey(dk['S'])
-    ReleaseKey(dk['A'])
-    ReleaseKey(dk['D'])
+    # ReleaseKey(dk['W'])
+    # ReleaseKey(dk['S'])
+    # ReleaseKey(dk['A'])
+    # ReleaseKey(dk['D'])
     ReleaseKey(dk['LSHIFT'])
     ReleaseKey(dk['SPACE'])
-    ReleaseKey(dk['Y'])
+    # ReleaseKey(dk['Y'])
     ReleaseKey(dk['J'])
     ReleaseKey(dk['K'])
 
@@ -99,7 +98,7 @@ def act(action=4, WS=2, AD=2):
         act = Jump         # 跳跃
     else:
         act = NOKEY        # 无键, 无动作
-    
+
     PressKey(dk['W'])
     act()
     ReleaseKey(dk['W'])

@@ -4,17 +4,17 @@
 
 ![demo.jpg](https://raw.githubusercontent.com/ricagj/pysekiro/main/imgs/adjustment_02.png)  
 
+# **一堆Bug，正在调试中**
+# **一堆Bug，正在调试中**
+# **一堆Bug，正在调试中**
+
 ## 最新说明 
 
-新版本将用三维卷积代替二维卷积。（当前还不是新版本）  
-本项目用到的三维不是指长宽高，而是指 **时间序列**、**垂直像素数**、**水平像素数**。  
-毕竟只狼是动作类游戏，用二维卷积无法捕捉运动轨迹，而用三维卷积的话，模型就能通过运动轨迹来预测动作了（理论上）。  
+当前是测试版本，还有很多问题没解决，先把代码上传留个备份。
 
-## 降低训练标准
+![模型结构](https://github.com/ricagj/pysekiro_with_RL/blob/main/MODEL_structure.png)  
 
-1. 默认在作弊模式下训练
-2. 全程夜叉戮之降临
-3. 目标是苇名弦一郎前两阶段（第三阶段与前两阶段差异较大，对训练不友好）
+![存储经验部分代码流程图](https://github.com/ricagj/pysekiro_with_RL/blob/main/flow_chart.png)  
 
 ## 快速开始
 
@@ -39,7 +39,7 @@
     - \__init__.py
     - Agent.py (DQN)
     - model.py （模型定义）
-    - train.py (训练\测试模型)
+    - on_policy.py (同策学习)
 
 ## 准备
 

@@ -11,9 +11,9 @@ def MODEL(in_depth, in_height, in_width, in_channels, outputs, lr, load_weights_
 
     Input = tf.keras.Input(shape=[in_depth, in_height, in_width, in_channels])
 
-    out_dim = 32
+    out_dim = 64
     conv_0 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(in_depth, 3, 3), padding='same', activation=tf.nn.relu)(Input)
-    pool_0 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2))(conv_0)
+    pool_0 = tf.keras.layers.MaxPool3D(pool_size=(1, 2, 2))(conv_0)
 
     conv_1 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=tf.nn.relu)(pool_0)
     conv_2_0 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 3, 3), padding='same', activation=tf.nn.relu)(conv_1)
@@ -24,18 +24,18 @@ def MODEL(in_depth, in_height, in_width, in_channels, outputs, lr, load_weights_
     out = tf.keras.layers.Add()([pool_0, conv_3])
     out_relu = tf.nn.relu(out)
 
-    conv_4 = tf.keras.layers.Conv3D(filters=16, kernel_size=(in_depth, 3, 3), padding='same', activation=tf.nn.relu)(out_relu)
-    pool_4 = tf.keras.layers.MaxPool3D(pool_size=(3, 3, 3))(conv_4)
+    conv_4 = tf.keras.layers.Conv3D(filters=32, kernel_size=(in_depth, 3, 3), padding='same', activation=tf.nn.relu)(out_relu)
+    pool_4 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2))(conv_4)
 
-    flat = tf.keras.layers.Flatten()(pool_4)
+    conv_5 = tf.keras.layers.Conv3D(filters=32, kernel_size=(in_depth//2, 3, 3), padding='same', activation=tf.nn.relu)(pool_4)
+    pool_5 = tf.keras.layers.MaxPool3D(pool_size=(3, 2, 2))(conv_5)
 
-    dense1 = tf.keras.layers.Dense(32,activation=tf.nn.relu)(flat)
-    dense1 = tf.keras.layers.BatchNormalization()(dense1)
+    flat = tf.keras.layers.Flatten()(pool_5)
 
-    dense2 = tf.keras.layers.Dense(16,activation=tf.nn.relu)(dense1)
-    dense2 = tf.keras.layers.BatchNormalization()(dense2)
+    dense = tf.keras.layers.Dense(16,activation=tf.nn.relu)(flat)
+    dense = tf.keras.layers.BatchNormalization()(dense)
 
-    output = tf.keras.layers.Dense(outputs,activation=tf.nn.softmax)(dense2)
+    output = tf.keras.layers.Dense(outputs,activation=tf.nn.softmax)(dense)
 
     model = tf.keras.Model(inputs=Input, outputs=output)
 
@@ -56,22 +56,22 @@ def MODEL(in_depth, in_height, in_width, in_channels, outputs, lr, load_weights_
 
 def main():
     in_depth = 6
-    in_height = 300
-    in_width = 300
+    in_height = 400
+    in_width = 400
     in_channels = 3
     outputs = 5
     lr = 0.01
     model = MODEL(in_depth, in_height, in_width, in_channels, outputs, lr)
     model.summary()
 
-    # tensorboard = tf.keras.callbacks.TensorBoard()
+    tensorboard = tf.keras.callbacks.TensorBoard()
 
-    # model.fit(
-    #     np.zeros((in_depth, in_height, in_width, in_channels)).reshape(-1, in_depth, in_height, in_width, in_channels),
-    #     np.array([[0, 0, 0, 0, 1]]),
-    #     verbose=0,
-    #     callbacks=[tensorboard]
-    # )
+    model.fit(
+        np.zeros((in_depth, in_height, in_width, in_channels)).reshape(-1, in_depth, in_height, in_width, in_channels),
+        np.array([[0, 0, 0, 0, 1]]),
+        verbose=0,
+        callbacks=[tensorboard]
+    )
 
 # ---*---
 
