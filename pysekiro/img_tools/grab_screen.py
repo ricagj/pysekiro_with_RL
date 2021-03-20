@@ -24,7 +24,10 @@ def grab_screen(region=None):
     bmp = win32ui.CreateBitmap()
     bmp.CreateCompatibleBitmap(srcdc, width, height)
     memdc.SelectObject(bmp)
-    memdc.BitBlt((0, 0), (width, height), srcdc, (left, top), win32con.SRCCOPY)
+    try:
+        memdc.BitBlt((0, 0), (width, height), srcdc, (left, top), win32con.SRCCOPY)
+    except:
+    	return np.ones((height, width, 3), dtype=np.uint8) * 255
 
     signedIntsArray = bmp.GetBitmapBits(True)
     img = np.fromstring(signedIntsArray, dtype='uint8')

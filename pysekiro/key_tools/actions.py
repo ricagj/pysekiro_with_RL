@@ -14,14 +14,15 @@ dk = {
     'LSHIFT' : 0x2A,
     'SPACE'  : 0x39,
 
-    'Y' : 0x15,
+    'Y'       : 0x15,
+    'NUMPAD1' : 0x4F,
 
     'J' : 0x24,
     'K' : 0x25,
 }
 
 # 按键其实不需要很多时间
-delay = 0.01
+delay = 0.05
 
 # ---*---
 
@@ -56,11 +57,19 @@ def Jump():    # 1.101
     ReleaseKey(dk['SPACE'])
 
 
-# def Lock_On():
-#     PressKey(dk['Y'])
-#     time.sleep(delay)
-#     ReleaseKey(dk['Y'])
+def Lock_On():
+    PressKey(dk['Y'])
+    time.sleep(delay)
+    ReleaseKey(dk['Y'])
 
+def Reset_Self_HP():
+    PressKey(dk['NUMPAD1'])
+    time.sleep(delay)
+    ReleaseKey(dk['NUMPAD1'])
+    time.sleep(1)
+    PressKey(dk['NUMPAD1'])
+    time.sleep(delay)
+    ReleaseKey(dk['NUMPAD1'])
 
 def Attack():    # 0.640
     PressKey(dk['J'])

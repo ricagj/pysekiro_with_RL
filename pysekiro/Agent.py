@@ -1,7 +1,7 @@
 # https://github.com/ZhiqingXiao/rl-book/blob/master/chapter10_atari/BreakoutDeterministic-v4_tf.ipynb
+# https://github.com/ZhiqingXiao/rl-book/blob/master/chapter06_approx/MountainCar-v0_tf.ipynb
 # https://mofanpy.com/tutorials/machine-learning/reinforcement-learning/DQN3
 
-import matplotlib.pyplot as plt
 import numpy as np
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 import pandas as pd
@@ -42,6 +42,14 @@ class Sekiro_Agent:
         in_channels,
         outputs,
         lr,
+
+        min_epsilon,
+        replay_memory_size,
+        replay_start_size,
+        batch_size,
+        update_freq,
+        target_network_update_freq,
+
         load_weights_path = None,
         save_weights_path = None
     ):
@@ -54,14 +62,14 @@ class Sekiro_Agent:
 
         self.gamma = 0.99    # 奖励衰减
 
-        self.min_epsilon = 0.3       # 最终探索率
+        self.min_epsilon = min_epsilon    # 最终探索率
 
-        self.replay_memory_size = 5000    # 记忆容量
-        self.replay_start_size = 1000     # 开始经验回放时存储的记忆量，到达最终探索率后才开始
-        self.batch_size = 4              # 样本抽取数量
+        self.replay_memory_size = replay_memory_size    # 记忆容量
+        self.replay_start_size = replay_start_size      # 开始经验回放时存储的记忆量，到达最终探索率后才开始
+        self.batch_size = batch_size                    # 样本抽取数量
 
-        self.update_freq = 50                    # 训练评估网络的频率
-        self.target_network_update_freq = 250    # 更新目标网络的频率
+        self.update_freq = update_freq                                  # 训练评估网络的频率
+        self.target_network_update_freq = target_network_update_freq    # 更新目标网络的频率
 
         self.load_weights_path = load_weights_path    # 指定模型权重参数加载的路径。默认为None，不加载。
         self.save_weights_path = save_weights_path    # 指定模型权重参数保存的路径。默认为None，不保存。注：默认也是测试模式，若设置该参数，就会开启训练模式
@@ -131,10 +139,11 @@ class Sekiro_Agent:
             next_actions = next_eval_qs.argmax(axis=-1)
 
             next_qs = self.target_net.predict(next_observations)
-            next_max_qs = next_qs[np.arange(self.batch_size), next_actios]
+            next_max_qs = next_qs[np.arange(next_qs.shape[0]), next_actions]
 
+            us = rewards + self.gamma * next_max_qs
             targets = self.evaluate_net.predict(observations)
-            targets[np.arange(self.batch_size), actions] = rewards + self.gamma * next_max_qs
+            targets[np.arange(us.shape[0]), actions] = us
 
             # 学习
             self.evaluate_net.fit(observations, targets, verbose=0)

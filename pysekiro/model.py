@@ -11,26 +11,26 @@ def MODEL(in_depth, in_height, in_width, in_channels, outputs, lr, load_weights_
 
     Input = tf.keras.Input(shape=[in_depth, in_height, in_width, in_channels])
 
-    out_dim = 64
-    conv_0 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(in_depth, 3, 3), padding='same', activation=tf.nn.relu)(Input)
-    pool_0 = tf.keras.layers.MaxPool3D(pool_size=(1, 2, 2))(conv_0)
+    out_dim = 16
+    conv_0 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=tf.nn.relu)(Input)
 
-    conv_1 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=tf.nn.relu)(pool_0)
+    # ---------- 借鉴 P3D-B ----------
+
+    conv_1 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=tf.nn.relu)(conv_0)
     conv_2_0 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 3, 3), padding='same', activation=tf.nn.relu)(conv_1)
     conv_2_1 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(3, 1, 1), padding='same', activation=None)(conv_1)
     conv_2 = tf.keras.layers.Add()([conv_2_0, conv_2_1])
     conv_2_relu = tf.nn.relu(conv_2)
     conv_3 = tf.keras.layers.Conv3D(filters=out_dim, kernel_size=(1, 1, 1), padding='same', activation=None)(conv_2_relu)
-    out = tf.keras.layers.Add()([pool_0, conv_3])
+    out = tf.keras.layers.Add()([conv_0, conv_3])
     out_relu = tf.nn.relu(out)
 
-    conv_4 = tf.keras.layers.Conv3D(filters=32, kernel_size=(in_depth, 3, 3), padding='same', activation=tf.nn.relu)(out_relu)
-    pool_4 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2))(conv_4)
+    # --------------------
 
-    conv_5 = tf.keras.layers.Conv3D(filters=32, kernel_size=(in_depth//2, 3, 3), padding='same', activation=tf.nn.relu)(pool_4)
-    pool_5 = tf.keras.layers.MaxPool3D(pool_size=(3, 2, 2))(conv_5)
+    conv_4 = tf.keras.layers.Conv3D(filters=8, kernel_size=(in_depth, 5, 5), padding='same', activation=tf.nn.relu)(out_relu)
+    pool_4 = tf.keras.layers.MaxPool3D(pool_size=(in_depth, 2, 2))(conv_4)
 
-    flat = tf.keras.layers.Flatten()(pool_5)
+    flat = tf.keras.layers.Flatten()(pool_4)
 
     dense = tf.keras.layers.Dense(16,activation=tf.nn.relu)(flat)
     dense = tf.keras.layers.BatchNormalization()(dense)
@@ -55,10 +55,10 @@ def MODEL(in_depth, in_height, in_width, in_channels, outputs, lr, load_weights_
 # ---*---
 
 def main():
-    in_depth = 6
-    in_height = 400
-    in_width = 400
-    in_channels = 3
+    in_depth = 8
+    in_height = 100
+    in_width = 100
+    in_channels = 1
     outputs = 5
     lr = 0.01
     model = MODEL(in_depth, in_height, in_width, in_channels, outputs, lr)

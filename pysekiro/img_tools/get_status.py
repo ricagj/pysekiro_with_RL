@@ -72,6 +72,7 @@ def get_Target_Posture(img):
     white_line = r[0][0]
     if white_line > 190:
         canny = cv2.Canny(cv2.GaussianBlur(r,(3,3),0), 0, 100)    # Canny边缘检测
+        canny[0][1] = 0
         Target_Posture =  np.argmax(canny)
     else:
         Target_Posture = 0

@@ -4,15 +4,17 @@ import threading
 import time
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 import pandas as pd
 
 from pysekiro.Agent import Sekiro_Agent
-from pysekiro.key_tools.get_keys import key_check
 from pysekiro.img_tools.get_status import get_status
 from pysekiro.img_tools.get_vertices import roi
 from pysekiro.img_tools.grab_screen import get_screen
+from pysekiro.key_tools.actions import Lock_On, Reset_Self_HP
+from pysekiro.key_tools.get_keys import key_check
 
 # ---*---
 
@@ -60,15 +62,20 @@ x_w = 600
 y   = 25
 y_h = 425
 
-in_depth    = 6
-in_height   = y_h - y
-in_width    = x_w - x
+in_depth    = 8
+in_depth    = in_depth // 2 * 2
+in_height   = (y_h - y) // 4
+in_width    = (x_w - x) // 4
 in_channels = 1
 outputs     = 5
 lr          = 0.01
 
-HEIGHT = in_height
-WIDTH = in_width
+min_epsilon = 0.3
+replay_memory_size = in_depth * 1000
+replay_start_size  = in_depth * 50
+batch_size = 32 // in_depth
+update_freq = in_depth * 20
+target_network_update_freq = in_depth * 100
 
 # ---*---
 
@@ -87,6 +94,14 @@ class Play_Sekiro_Online:
             in_channels = in_channels,
             outputs     = outputs,
             lr          = lr,
+
+            min_epsilon = min_epsilon,
+            replay_memory_size = replay_memory_size,
+            replay_start_size = replay_start_size,
+            batch_size = batch_size,
+            update_freq = update_freq,
+            target_network_update_freq = target_network_update_freq,
+
             load_weights_path = load_weights_path,
             save_weights_path = save_weights_path
         )
@@ -105,32 +120,24 @@ class Play_Sekiro_Online:
 
         self.screens = deque(maxlen = in_depth * 2)    # 用双端队列存放图像
 
-        self.first_run()    # 初次运行前的准备
+        if self.load_memory_path:
+            self.load_memory()    # 加载经验
 
-    def first_run(self):
-        # 初次训练需要加载GPU，这个过程有那么一点点长，初次训练之后就不会加载那么长时间了，所以这里先训练一次，避免影响到后面正式的训练
-        self.sekiro_agent.evaluate_net.fit(
-            np.ones((in_depth, in_height, in_width, in_channels)).reshape(-1, in_depth, in_height, in_width, in_channels),
-            np.array([[0, 0, 0, 0, 1]]),
-            verbose=0
-        )    # 说实话，我不知道这样会不会对模型造成什么影响，如果以后解决了上面所说的问题，就移除这部分代码。
-
-        if self.load_memory_path:    # 设置了该参数就会进入下面
+    def load_memory(self):
+        if os.path.exists(self.load_memory_path):    # 确定经验的存在
             
-            if os.path.exists(self.load_memory_path):    # 确定经验的存在
-                
-                self.sekiro_agent.replayer.memory = pd.read_json(self.load_memory_path)    # 加载经验
-                print('Load ' + self.load_memory_path)
+            self.sekiro_agent.replayer.memory = pd.read_json(self.load_memory_path)    # 加载经验
+            print('Load ' + self.load_memory_path)
 
-                i = self.sekiro_agent.replayer.memory.action.count()    # 'observation', 'action', 'reward', 'next_observation' 都可以用，反正每一列数据的数量都一样
-                self.sekiro_agent.replayer.i = i    # 恢复 index 指向的行索引（有点像指针）
-                self.sekiro_agent.replayer.count = i    # 恢复 "代表经验的数量" 的数值
+            i = self.sekiro_agent.replayer.memory.action.count()    # 'observation', 'action', 'reward', 'next_observation' 都可以用，反正每一列数据的数量都一样
+            self.sekiro_agent.replayer.i = i    # 恢复 index 指向的行索引（有点像指针）
+            self.sekiro_agent.replayer.count = i    # 恢复 "代表经验的数量" 的数值
 
-                # 恢复已学习的步数，但去除零头，加1是为了避免刚进入就马上训练
-                self.sekiro_agent.step = i // self.update_freq * self.update_freq + 1
+            # 恢复已学习的步数，但去除零头，加1是为了避免刚进入就马上训练
+            self.sekiro_agent.step = i // self.update_freq * self.update_freq + 1
 
-            else:
-                print('No memory to load.')
+        else:
+            print('No memory to load.')
 
     def get_S(self):
 
@@ -141,24 +148,34 @@ class Play_Sekiro_Online:
         # 从内到外解释如何处理并得到observation
         # 颜色空间转换，BGR彩图转换成GRAY灰度图 cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
         # 提取感兴趣区域 roi(？？？？？, x, x_w, y, y_h)
-        # 图像缩放 cv2.resize(？？？？？, (HEIGHT, WIDTH))
+        # 图像缩放 cv2.resize(？？？？？, (in_height, in_width))
         # 从队列中取出刚刚获取的图像 [？？？？？ for screen in self.screens[:6]]
-        return np.array([cv2.resize(roi(cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY), x, x_w, y, y_h), (HEIGHT, WIDTH)) for screen in screens])
+        return np.array([cv2.resize(roi(cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY), x, x_w, y, y_h), (in_height, in_width)) for screen in screens])
 
     def round(self):
 
-        observation = self.img_processing(list(self.screens)[:6])
+        observation = self.img_processing(list(self.screens)[:in_depth])    # S
 
-        action = self.action = self.sekiro_agent.choose_action(observation)
+        action = self.action = self.sekiro_agent.choose_action(observation)    # A
 
         self.get_S()    # 获取新状态
 
-        reward = self.reward_system.get_reward(
-            cur_status=get_status(list(self.screens)[in_depth - 1]),
-            next_status=get_status(list(self.screens)[in_depth * 2 - 1])
-        )    # 计算 奖励R
+        next_status = get_status(list(self.screens)[in_depth * 2 - 1])[:4]
 
-        next_observation = self.img_processing(list(self.screens)[6:])
+        reward = self.reward_system.get_reward(
+            cur_status=get_status(list(self.screens)[in_depth - 1])[:4],
+            next_status=next_status
+        )    # R
+
+        Self_HP = next_status[0]
+        if Self_HP < 5:    # 检测到生命值过低
+            Reset_Self_HP()    # 重置自身生命值。注：先把修改器开着，不然这一步无效
+            time.sleep(1)
+            Lock_On()    # 如果已经凉了，还要重新锁定视角
+
+            reward = -300    # 死亡惩罚
+
+        next_observation = self.img_processing(list(self.screens)[in_depth:])    # S'
 
         if self.train:
 
