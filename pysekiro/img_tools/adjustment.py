@@ -5,10 +5,10 @@ from pysekiro.img_tools.get_vertices import roi
 from pysekiro.img_tools.grab_screen import get_screen
 from pysekiro.key_tools.get_keys import key_check
 
-x   = 200
-x_w = 600
-y   = 25
-y_h = 425
+x   = 250
+x_w = 550
+y   = 75
+y_h = 375
 
 def main():
 

@@ -1,6 +1,5 @@
 from collections import deque
 import os
-import threading
 import time
 
 import cv2
@@ -39,6 +38,14 @@ class RewardSystem:
 
             reward = s1 + s2 + t1 + t2
 
+        Self_HP = next_status[0]
+        if Self_HP < 3:    # 检测到生命值过低
+            Reset_Self_HP()    # 重置自身生命值。注：先把修改器开着，不然这一步无效
+            time.sleep(1)
+            Lock_On()    # 如果已经凉了，还要重新锁定视角
+
+            reward = -300    # 死亡惩罚
+
         self.total_reward += reward
         self.reward_history.append(self.total_reward)
 
@@ -57,62 +64,36 @@ class RewardSystem:
 
 # ---*---
 
-x   = 200
-x_w = 600
-y   = 25
-y_h = 425
+x   = 250
+x_w = 550
+y   = 75
+y_h = 375
 
-in_depth    = 8
-in_depth    = in_depth // 2 * 2
-in_height   = (y_h - y) // 4
-in_width    = (x_w - x) // 4
-in_channels = 1
-outputs     = 5
-lr          = 0.01
-
-min_epsilon = 0.3
-replay_memory_size = in_depth * 1000
-replay_start_size  = in_depth * 50
-batch_size = 32 // in_depth
-update_freq = in_depth * 20
-target_network_update_freq = in_depth * 100
+in_depth    = 10
+in_height   = 50
+in_width    = 50
 
 # ---*---
 
 class Play_Sekiro_Online:
     def __init__(
         self,
-        load_weights_path=None,    # 指定模型权重参数加载的路径。默认为None，不加载。
-        save_weights_path=None,    # 指定模型权重参数保存的路径。默认为None，不保存。
-        load_memory_path=None,     # 指定记忆加载的路径。默认为None，不加载。
-        save_memory_path=None,     # 指定记忆保存的路径。默认为None，不保存。
+        save_memory_path=None,
+        load_memory_path=None,
+        save_weights_path=None,
+        load_weights_path=None
     ):
+        self.save_memory_path = save_memory_path     # 指定记忆保存的路径。默认为None，不保存。
+        self.load_memory_path = load_memory_path     # 指定记忆加载的路径。默认为None，不加载。
         self.sekiro_agent = Sekiro_Agent(
-            in_depth    = in_depth,
-            in_height   = in_height,
-            in_width    = in_width,
-            in_channels = in_channels,
-            outputs     = outputs,
-            lr          = lr,
-
-            min_epsilon = min_epsilon,
-            replay_memory_size = replay_memory_size,
-            replay_start_size = replay_start_size,
-            batch_size = batch_size,
-            update_freq = update_freq,
-            target_network_update_freq = target_network_update_freq,
-
-            load_weights_path = load_weights_path,
-            save_weights_path = save_weights_path
+            save_weights_path = save_weights_path,    # 指定模型权重参数保存的路径。默认为None，不保存。
+            load_weights_path = load_weights_path     # 指定模型权重参数加载的路径。默认为None，不加载。
         )
-
         if not save_weights_path:    # 注：默认也是测试模式，若设置该参数，就会开启训练模式
             self.train = False
+            self.sekiro_agent.step = self.sekiro_agent.replay_start_size + 1
         else:
             self.train = True
-
-        self.load_memory_path = load_memory_path
-        self.save_memory_path = save_memory_path
 
         self.reward_system = RewardSystem()    # 奖惩系统
 
@@ -125,16 +106,16 @@ class Play_Sekiro_Online:
 
     def load_memory(self):
         if os.path.exists(self.load_memory_path):    # 确定经验的存在
-            
+            last_time = time.time()
             self.sekiro_agent.replayer.memory = pd.read_json(self.load_memory_path)    # 加载经验
-            print('Load ' + self.load_memory_path)
+            print(f'Load {self.load_memory_path}. Took {round(time.time()-last_time, 3):>5} seconds.')
 
             i = self.sekiro_agent.replayer.memory.action.count()    # 'observation', 'action', 'reward', 'next_observation' 都可以用，反正每一列数据的数量都一样
             self.sekiro_agent.replayer.i = i    # 恢复 index 指向的行索引（有点像指针）
             self.sekiro_agent.replayer.count = i    # 恢复 "代表经验的数量" 的数值
 
             # 恢复已学习的步数，但去除零头，加1是为了避免刚进入就马上训练
-            self.sekiro_agent.step = i // self.update_freq * self.update_freq + 1
+            self.sekiro_agent.step = i // self.sekiro_agent.update_freq * self.sekiro_agent.update_freq + 1
 
         else:
             print('No memory to load.')
@@ -160,20 +141,10 @@ class Play_Sekiro_Online:
 
         self.get_S()    # 获取新状态
 
-        next_status = get_status(list(self.screens)[in_depth * 2 - 1])[:4]
-
         reward = self.reward_system.get_reward(
             cur_status=get_status(list(self.screens)[in_depth - 1])[:4],
-            next_status=next_status
+            next_status=get_status(list(self.screens)[in_depth * 2 - 1])[:4]
         )    # R
-
-        Self_HP = next_status[0]
-        if Self_HP < 5:    # 检测到生命值过低
-            Reset_Self_HP()    # 重置自身生命值。注：先把修改器开着，不然这一步无效
-            time.sleep(1)
-            Lock_On()    # 如果已经凉了，还要重新锁定视角
-
-            reward = -300    # 死亡惩罚
 
         next_observation = self.img_processing(list(self.screens)[in_depth:])    # S'
 
@@ -186,7 +157,9 @@ class Play_Sekiro_Online:
                 next_observation
             )    # 存储经验
 
-            self.sekiro_agent.learn()
+            # 记忆量符合开始经验回放时需要存储的记忆量
+            if self.sekiro_agent.replayer.count >= self.sekiro_agent.replay_start_size:
+                self.sekiro_agent.learn()
 
     def run(self):
 

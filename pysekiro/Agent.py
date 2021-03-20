@@ -32,26 +32,23 @@ class DQNReplayer:
 
 # ---*---
 
+in_depth    = 10
+in_height   = 50
+in_width    = 50
+in_channels = 1
+outputs     = 5
+
+# ---*---
+
 # DoubleDQN
 class Sekiro_Agent:
     def __init__(
         self,
-        in_depth,
-        in_height,
-        in_width,
-        in_channels,
-        outputs,
-        lr,
+        lr = 0.01,
+        batch_size = 8,
+        save_weights_path = None,
+        load_weights_path = None
 
-        min_epsilon,
-        replay_memory_size,
-        replay_start_size,
-        batch_size,
-        update_freq,
-        target_network_update_freq,
-
-        load_weights_path = None,
-        save_weights_path = None
     ):
         self.in_depth    = in_depth       # 时间序列的深度，也可以认为是包含了多少帧图像
         self.in_height   = in_height      # 图像高度
@@ -62,17 +59,17 @@ class Sekiro_Agent:
 
         self.gamma = 0.99    # 奖励衰减
 
-        self.min_epsilon = min_epsilon    # 最终探索率
+        self.min_epsilon = 0.3    # 最终探索率
 
-        self.replay_memory_size = replay_memory_size    # 记忆容量
-        self.replay_start_size = replay_start_size      # 开始经验回放时存储的记忆量，到达最终探索率后才开始
-        self.batch_size = batch_size                    # 样本抽取数量
+        self.replay_memory_size = 10000    # 记忆容量
+        self.replay_start_size = 500       # 开始经验回放时存储的记忆量，到达最终探索率后才开始
+        self.batch_size = batch_size       # 样本抽取数量
 
-        self.update_freq = update_freq                                  # 训练评估网络的频率
-        self.target_network_update_freq = target_network_update_freq    # 更新目标网络的频率
+        self.update_freq = 100                   # 训练评估网络的频率
+        self.target_network_update_freq = 500    # 更新目标网络的频率
 
+        self.save_weights_path = save_weights_path    # 指定模型权重参数保存的路径。默认为None，不保存。
         self.load_weights_path = load_weights_path    # 指定模型权重参数加载的路径。默认为None，不加载。
-        self.save_weights_path = save_weights_path    # 指定模型权重参数保存的路径。默认为None，不保存。注：默认也是测试模式，若设置该参数，就会开启训练模式
 
         self.evaluate_net = self.build_network()    # 评估网络
         self.target_net = self.build_network()      # 目标网络
@@ -114,14 +111,15 @@ class Sekiro_Agent:
         return action
 
     # 学习方法
-    def learn(self):
+    def learn(self, verbose=0):
 
         self.step += 1
 
-        # 条件之一：记忆量符合开始经验回放时需要存储的记忆量
-        if self.replayer.count >= self.replay_start_size and self.step % self.update_freq == 0:    # 更新评估网络
+        # 当前步数满足更新评估网络的要求
+        if self.step % self.update_freq == 0:
 
-            if self.step % self.target_network_update_freq == 0:    # 更新目标网络
+            # 当前步数满足更新目标网络的要求
+            if self.step % self.target_network_update_freq == 0:
                 self.update_target_network() 
 
             # 经验回放
@@ -146,7 +144,7 @@ class Sekiro_Agent:
             targets[np.arange(us.shape[0]), actions] = us
 
             # 学习
-            self.evaluate_net.fit(observations, targets, verbose=0)
+            self.evaluate_net.fit(observations, targets, batch_size=1, verbose=verbose)
 
             # 保存
             self.save_evaluate_network()
