@@ -23,25 +23,25 @@ def main():
                 print('Starting!')
         else:
 
-            screen = get_screen()
+            screen = get_screen()    # 获取屏幕图像
 
             status_info = get_status(screen)[4]
-            print('\r' + status_info, end='')
+            print('\r' + status_info, end='')    # 显示状态信息
 
             cv2.imshow('roi', roi(screen, x, x_w, y, y_h))
 
-            # Calibration line
-            screen[409:, [48, 49, 304, 305], :] = 255    # Self_HP
+            # 校准线
+            screen[409:, [48, 49, 304, 305], :] = 255    # 自身生命
 
-            # screen[389, 401:483, :] = 255    # Self_Posture
-            screen[[384, 385, 392,393], 401:483, :] = 255    # Self_Posture
-            screen[389:, 401, :] = 255    # Self_Posture Midline
+            # screen[389, 401:483, :] = 255    # 自身架势
+            screen[[384, 385, 392,393], 401:483, :] = 255    # 自身架势
+            screen[389:, 401, :] = 255    # 自身架势中线
 
-            screen[:41, [48, 49, 215, 216], :] = 255    # Target_HP
+            screen[:41, [48, 49, 215, 216], :] = 255    # 目标生命
 
-            # screen[29, 401:544, :] = 255    # Target_Posture
-            screen[[25, 26, 32, 33], 401:544, :] = 255    # Target_Posture
-            screen[:29, 401, :] = 255    # Target_Posture Midline
+            # screen[29, 401:544, :] = 255    # 目标架势
+            screen[[25, 26, 32, 33], 401:544, :] = 255    # 目标架势
+            screen[:29, 401, :] = 255    # 目标架势中线
 
             cv2.imshow('screen', screen)
             cv2.waitKey(1)

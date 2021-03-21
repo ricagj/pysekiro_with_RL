@@ -42,6 +42,7 @@ def grab_screen(region=None):
 
 # ---*---
 
+# 游戏窗口大小
 GAME_WIDTH = 800
 GAME_HEIGHT = 450
 
@@ -50,6 +51,7 @@ def get_screen():
 
 # ---*---
 
+# 全屏
 FULL_WIDTH = 1920
 FULL_HEIGHT = 1080
 

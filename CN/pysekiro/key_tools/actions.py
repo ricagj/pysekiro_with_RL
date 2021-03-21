@@ -21,7 +21,7 @@ dk = {
     'K' : 0x25,
 }
 
-# It doesn’t take a lot of time to press the keys.
+# 按键其实不需要很多时间
 delay = 0.05
 
 # ---*---
@@ -98,34 +98,34 @@ def NOKEY():
 def act(action=4, WS=2, AD=2):
     
     if   action == 0:
-        act = Attack
+        act = Attack       # 攻击
     elif action == 1:
-        act = Deflect
+        act = Deflect      # 弹反
     elif action == 2:
-        act = Step_Dodge
+        act = Step_Dodge   # 垫步
     elif action == 3:
-        act = Jump
+        act = Jump         # 跳跃
     else:
-        act = NOKEY
+        act = NOKEY        # 无键, 无动作
 
     PressKey(dk['W'])
     act()
     ReleaseKey(dk['W'])
 
     # if   WS == 0:
-    #     ws = Move_Forward
+    #     ws = Move_Forward # 移动 前
     # elif WS == 1:
-    #     ws = Move_Back
+    #     ws = Move_Back    # 移动 后
     # else:
-    #     ws = NOKEY
+    #     ws = NOKEY        # 无键, 无动作
     # ws_process = threading.Thread(target=ws)
     # ws_process.start()
 
     # if   AD == 0:
-    #     ad = Move_Left
+    #     ad = Move_Left    # 移动 左
     # elif AD == 1:
-    #     ad = Move_Right
+    #     ad = Move_Right   # 移动 右
     # else:
-    #     ad = NOKEY
+    #     ad = NOKEY        # 无键, 无动作
     # ad_process = threading.Thread(target=ad)
     # ad_process.start()

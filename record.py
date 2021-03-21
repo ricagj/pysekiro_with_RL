@@ -28,10 +28,10 @@ class Record:
 
     def get_save_path(self):
         n = 1
-        while True:    # 直到找到保存位置并保存就 break
+        while True:
             filename = str(n).zfill(3) + '.avi'
             save_path = os.path.join(self.save_dir, filename)
-            if not os.path.exists(save_path):    # 没有重复的文件名就执行保存并退出
+            if not os.path.exists(save_path):
                 print(save_path)
                 return save_path
             n += 1
@@ -65,7 +65,7 @@ class Record:
                     time.sleep(t)
                 print(f'\r loop {time.time() - last_time}', end='')
             
-            if 'P' in keys:    # 结束
+            if 'P' in keys:
                 self.video.release()
                 cv2.destroyAllWindows()
                 print('\nDone!')

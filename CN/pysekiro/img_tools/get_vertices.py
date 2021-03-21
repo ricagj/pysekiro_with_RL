@@ -18,7 +18,7 @@ def get_xywh(img):
     global vertices
     vertices = []
 
-    print('Press "ESC" to quit. ')
+    print('Press "ESC" to quit. ') # 按ESC键离开。
     cv2.namedWindow("window", cv2.WINDOW_NORMAL)
     cv2.setMouseCallback("window", on_EVENT_LBUTTONDOWN)
     while True:

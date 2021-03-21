@@ -1,46 +1,46 @@
-## 《Sekiro™ Shadows Die Twice》【DoubleDQN】【Conv3D】
+## 《只狼：影逝二度》【DoubleDQN】【Conv3D】
 
 <p align="center">
-    <a>English</a>
+    <a href="https://github.com/ricagj/pysekiro_with_RL/blob/main/README.md">English</a>
     | 
-    <a href="https://github.com/ricagj/pysekiro_with_RL/blob/main/CN/README.md">中文</a>
+    <a>中文</a>
 </p>
 
 ![demo.jpg](https://raw.githubusercontent.com/ricagj/pysekiro/main/imgs/adjustment_02.png)  
 
-## Quick start
+## 快速开始
 
-[Quick_start.ipynb](https://github.com/ricagj/pysekiro_with_RL/blob/main/Quick_start.ipynb)  
+[快速开始](https://github.com/ricagj/pysekiro_with_RL/blob/main/CN/Quick_start.ipynb)  
 
-## Project structuret
+## 项目结构
 
-[How_it_works.ipynb](https://github.com/ricagj/pysekiro_with_RL/blob/main/How_it_works.ipynb)  
+[了解项目基础部分是如何工作的](https://github.com/ricagj/pysekiro_with_RL/blob/main/CN/How_it_works.ipynb)  
 
 - pysekiro
     - img_tools
         - \__init__.py
-        - adjustment.py
-        - get_status.py
-        - get_vertices.py
-        - grab_screen.py
+        - adjustment.py (游戏窗口校准)
+        - get_status.py (状态获取)
+        - get_vertices.py (顶点位置获取)
+        - grab_screen.py (屏幕图像抓取)
     - key_tools
         - \__init__.py
-        - actions.py
-        - direct_keys.py
-        - get_keys.py
+        - actions.py (动作控制)
+        - direct_keys.py (控制键盘的按键)
+        - get_keys.py (捕获键盘的按键)
     - \__init__.py
     - Agent.py (DoubleDQN)
-    - model.py
-    - on_policy.py
-    - off_policy.py
+    - model.py （模型定义）
+    - on_policy.py (同策学习)
+    - off_policy.py (异策学习)
 
-## Installation
+## 安装
 
-#### Install Anaconda3
+#### 安装 Anaconda3
 
 https://www.anaconda.com/  
 
-#### Create a virtual environment and install dependencies
+#### 创建虚拟环境和安装依赖
 
 ~~~shell
 conda create -n pysekiro python=3.8
@@ -53,7 +53,7 @@ pip install tensorflow>=2.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
 conda install -c conda-forge jupyterlab
 ~~~
 
-## Reference
+## 参考
 https://github.com/Sentdex/pygta5  
 https://github.com/analoganddigital/sekiro_tensorflow  
 https://github.com/analoganddigital/DQN_play_sekiro  

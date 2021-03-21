@@ -17,14 +17,14 @@ class DQNReplayer:
             index=range(capacity),
             columns=['observation', 'action', 'reward', 'next_observation']
         )
-        self.i = 0    # Row index
-        self.count = 0    # Number of experience storage
-        self.capacity = capacity    # Experience capacity
+        self.i = 0    # 行索引
+        self.count = 0    # 经验存储数量
+        self.capacity = capacity    # 经验容量
 
     def store(self, *args):
         self.memory.loc[self.i] = args
-        self.i = (self.i + 1) % self.capacity    # Update row index
-        self.count = min(self.count + 1, self.capacity)    # Guaranteed quantity will not exceed experience capacity
+        self.i = (self.i + 1) % self.capacity    # 更新行索引
+        self.count = min(self.count + 1, self.capacity)    # 保证数量不会超过经验容量
 
     def sample(self, size):
         indices = np.random.choice(self.count, size=size)
@@ -50,33 +50,34 @@ class Sekiro_Agent:
         load_weights_path = None
 
     ):
-        self.in_depth    = in_depth       # Depth of the time series
-        self.in_height   = in_height
-        self.in_width    = in_width
-        self.in_channels = in_channels
-        self.outputs     = outputs
-        self.lr          = lr,            # learning
+        self.in_depth    = in_depth       # 时间序列的深度
+        self.in_height   = in_height      # 图像高度
+        self.in_width    = in_width       # 图像宽度
+        self.in_channels = in_channels    # 颜色通道数量
+        self.outputs     = outputs        # 动作数量
+        self.lr          = lr,            # 学习率
 
-        self.gamma = 0.99
+        self.gamma = 0.99    # 奖励衰减
 
-        self.min_epsilon = 0.3
+        self.min_epsilon = 0.3    # 最终探索率
 
-        self.replay_memory_size = 10000 
-        self.replay_start_size = 500
-        self.batch_size = batch_size    # Number of samples drawn
+        self.replay_memory_size = 10000    # 记忆容量
+        self.replay_start_size = 500       # 开始经验回放时存储的记忆量，到达最终探索率后才开始
+        self.batch_size = batch_size       # 样本抽取数量
 
-        self.update_freq = 100
-        self.target_network_update_freq = 500
+        self.update_freq = 100                   # 训练评估网络的频率
+        self.target_network_update_freq = 500    # 更新目标网络的频率
 
-        self.save_weights_path = save_weights_path    # Specify the path to save the model weight. The default is None, do not save.
-        self.load_weights_path = load_weights_path    # Specify the path to load the model weight. The default is None, do not load.
+        self.save_weights_path = save_weights_path    # 指定模型权数保存的路径。默认为None，不保存。
+        self.load_weights_path = load_weights_path    # 指定模型权重加载的路径。默认为None，不加载。
 
-        self.evaluate_net = self.build_network()
-        self.target_net = self.build_network()
-        self.replayer = DQNReplayer(self.replay_memory_size)
+        self.evaluate_net = self.build_network()    # 评估网络
+        self.target_net = self.build_network()      # 目标网络
+        self.replayer = DQNReplayer(self.replay_memory_size)    # 经验回放
 
-        self.step = 0
+        self.step = 0    # 计步
 
+    # 评估网络和目标网络的构建方法
     def build_network(self):
         model = MODEL(
             in_depth = self.in_depth,
@@ -92,6 +93,8 @@ class Sekiro_Agent:
     # 行为选择方法
     def choose_action(self, observation):
 
+        # 先看运行的步数(self.step)有没有达到开始回放经验的要求(self.replay_start_size)，没有就随机探索
+                                                  # 如果已经达到了，就再看随机数在不在最终探索率范围内，在的话也是随机探索
         if self.step <= self.replay_start_size or np.random.rand() < self.min_epsilon:
             q_values = np.random.rand(self.outputs)
             self.who_play = '随机探索'
@@ -102,22 +105,27 @@ class Sekiro_Agent:
 
         action = np.argmax(q_values)
 
+        # 执行动作
         act(action)
 
         return action
 
+    # 学习方法
     def learn(self, verbose=0):
 
         self.step += 1
 
+        # 当前步数满足更新评估网络的要求
         if self.step % self.update_freq == 0:
 
+            # 当前步数满足更新目标网络的要求
             if self.step % self.target_network_update_freq == 0:
                 self.update_target_network() 
 
+            # 经验回放
             observations, actions, rewards, next_observations = self.replayer.sample(self.batch_size)
 
-            # Data preprocessing
+            # 数据预处理
             observations = observations.reshape(-1, self.in_depth, self.in_height, self.in_width, self.in_channels)
             actions = actions.astype(np.int8)
             next_observations = next_observations.reshape(-1, self.in_depth, self.in_height, self.in_width, self.in_channels)
@@ -138,8 +146,10 @@ class Sekiro_Agent:
 
             self.save_evaluate_network()
 
+    # 更新目标网络权重方法
     def update_target_network(self):
         self.target_net.set_weights(self.evaluate_net.get_weights())
 
+    # 保存评估网络权重方法
     def save_evaluate_network(self):
         self.evaluate_net.save_weights(self.save_weights_path)
